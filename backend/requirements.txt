@@ -7,7 +7,7 @@ passlib[bcrypt]==1.7.4
 python-dotenv==1.0.1
 
 # Claude Agent SDK
-claude-agent-sdk==0.2.0
+claude-agent-sdk==0.1.6
 anthropic==0.39.0
 
 # Data Processing

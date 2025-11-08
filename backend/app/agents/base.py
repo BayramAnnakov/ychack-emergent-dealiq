@@ -111,29 +111,9 @@ class BaseAgent(ABC):
             return self._fallback_processing(prompt)
 
     async def think(self, prompt: str, context: Optional[str] = None) -> str:
-        """Use Claude to process complex reasoning tasks (backward compatibility)"""
-        # Fallback to direct API call for simplicity
-        if not self.client:
-            return self._fallback_processing(prompt)
-
-        try:
-            system_prompt = f"You are {self.name}, a specialized agent for {self.description}."
-            if context:
-                system_prompt += f"\n\nContext:\n{context}"
-
-            response = await self.client.messages.create(
-                model=settings.CLAUDE_MODEL,
-                max_tokens=4000,
-                temperature=0.7,
-                system=system_prompt,
-                messages=[{"role": "user", "content": prompt}]
-            )
-
-            return response.content[0].text
-
-        except Exception as e:
-            print(f"Error in Claude API call: {e}")
-            return self._fallback_processing(prompt)
+        """Use Claude to process complex reasoning tasks using SDK streaming"""
+        # Use single_query which already implements proper Claude SDK
+        return await self.single_query(prompt, {"context": context} if context else None)
 
     def _build_prompt(self, prompt: str, context: Optional[Dict] = None) -> str:
         """Build a complete prompt with context"""
