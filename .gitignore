@@ -56,6 +56,8 @@ uploads/
 data/*.csv
 data/*.xlsx
 data/*.json
+# But keep sample data
+!data/sample_crm_data.csv
 
 # Claude Agent SDK
 .claude/cache/
