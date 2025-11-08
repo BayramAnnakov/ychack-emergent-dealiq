@@ -34,7 +34,7 @@ async def test_basic_sdk():
     # Configure SDK options
     options = {
         "api_key": api_key,
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-4-5-20250929",
         "max_turns": 1,
         "system_prompt": {
             "type": "preset",

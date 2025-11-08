@@ -144,7 +144,7 @@ TEST RESULTS
 - Try a simpler test first with `test_sdk_basic.py`
 
 ### Tests pass but responses seem wrong
-- Check you're using the correct model (claude-3-5-sonnet-20241022)
+- Check you're using the correct model (claude-sonnet-4-5-20250929)
 - Ensure your API key has proper permissions
 
 ## What Success Means
