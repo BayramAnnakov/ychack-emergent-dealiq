@@ -6,17 +6,16 @@ import numpy as np
 from typing import Dict, Any, Optional, List
 import json
 
-from app.agents.base import BaseAgent
+from app.agents.base import ContinuousAgent
 
 
-class DataIngestionAgent(BaseAgent):
-    """AI-powered agent for intelligent CRM data analysis"""
+class DataIngestionAgent(ContinuousAgent):
+    """AI-powered agent for intelligent CRM data analysis with continuous conversation support"""
 
     def __init__(self):
         super().__init__(
             name="DataIngestionAgent",
-            description="AI-powered CRM data analysis and insight extraction",
-            tools=[]  # No special tools needed for data analysis
+            description="AI-powered CRM data analysis and insight extraction"
         )
 
     async def process(self, data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
