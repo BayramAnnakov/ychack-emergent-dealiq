@@ -4,7 +4,28 @@ This directory contains tests to verify that the Claude Agents SDK is properly i
 
 ## Prerequisites
 
-1. **Set up your API key**:
+1. **Create and activate virtual environment**:
+   ```bash
+   cd backend
+
+   # Create virtual environment
+   python -m venv venv
+
+   # Activate it:
+   # On macOS/Linux:
+   source venv/bin/activate
+
+   # On Windows:
+   venv\Scripts\activate
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   # Make sure venv is activated first!
+   pip install -r requirements.txt
+   ```
+
+3. **Set up your API key**:
    ```bash
    export ANTHROPIC_API_KEY=your_api_key_here
    ```
@@ -14,11 +35,33 @@ This directory contains tests to verify that the Claude Agents SDK is properly i
    ANTHROPIC_API_KEY=your_api_key_here
    ```
 
-2. **Install dependencies**:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+## Quick Start - Complete Setup
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate  # macOS/Linux
+# OR
+venv\Scripts\activate     # Windows
+
+# Install dependencies (latest versions)
+pip install -r requirements.txt
+
+# Create .env file from example
+cp .env.example .env
+
+# Edit .env and add your API key
+# Open .env in your editor and set:
+# ANTHROPIC_API_KEY=sk-ant-api03-...your-key-here...
+
+# Now run tests
+python test_sdk_basic.py
+```
 
 ## Available Tests
 

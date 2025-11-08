@@ -6,6 +6,12 @@ import asyncio
 import os
 from typing import Dict, Any
 import pandas as pd
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file before importing app modules
+env_path = Path(__file__).parent / '.env'
+load_dotenv(env_path)
 
 # Add parent directory to path
 import sys

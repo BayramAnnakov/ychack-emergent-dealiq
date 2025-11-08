@@ -4,18 +4,28 @@ Run with: python test_sdk_basic.py
 """
 import asyncio
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from claude_agent_sdk import ClaudeSDKClient
+
+# Load .env file
+env_path = Path(__file__).parent / '.env'
+load_dotenv(env_path)
 
 # Simple test without any app dependencies
 async def test_basic_sdk():
     """Test the Claude SDK directly without our agent framework"""
 
-    # Get API key from environment
+    # Get API key from environment (now loaded from .env)
     api_key = os.getenv("ANTHROPIC_API_KEY")
 
     if not api_key:
-        print("❌ ERROR: Please set ANTHROPIC_API_KEY environment variable")
-        print("Example: export ANTHROPIC_API_KEY=your_key_here")
+        print("❌ ERROR: ANTHROPIC_API_KEY not found")
+        print("\nPlease set it in one of these ways:")
+        print("1. Create a .env file in the backend directory with:")
+        print("   ANTHROPIC_API_KEY=your_key_here")
+        print("\n2. Or export it as an environment variable:")
+        print("   export ANTHROPIC_API_KEY=your_key_here")
         return False
 
     print("Testing Claude SDK Basic Functionality")
