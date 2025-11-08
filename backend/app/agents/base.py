@@ -4,7 +4,8 @@ Base Agent class for DealIQ multi-agent system using Claude Agents SDK
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, List, AsyncIterator
 import asyncio
-from claude_agent_sdk import ClaudeSDKClient
+import os
+from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions, AssistantMessage, TextBlock, ResultMessage
 
 from app.core.config import settings
 
@@ -19,29 +20,30 @@ class BaseAgent(ABC):
         self.session = None
         self.client = None
 
-        # Configuration for Claude SDK
-        self.sdk_options = {
-            "api_key": settings.ANTHROPIC_API_KEY,
-            "model": settings.CLAUDE_MODEL,
-            "max_turns": 10,
-            "system_prompt": {
-                "type": "preset",
-                "preset": "claude_code",
-                "append": f"""You are {name}, a specialized agent for {description}.
+        # Ensure API key is set in environment for SDK
+        os.environ["ANTHROPIC_API_KEY"] = settings.ANTHROPIC_API_KEY
+
+        # Create agent-specific system prompt
+        system_prompt = f"""You are {name}, a specialized agent for {description}.
 
 Your role is to analyze sales/CRM data and provide actionable insights for sales teams.
 Focus on being specific, data-driven, and providing clear recommendations.
 When analyzing data, look for patterns, anomalies, trends, and opportunities."""
-            }
-        }
 
-        # Add custom tools if provided
-        if self.custom_tools:
-            self.sdk_options["tools"] = self.custom_tools
+        # Create ClaudeAgentOptions with proper configuration
+        self.options = ClaudeAgentOptions(
+            system_prompt=system_prompt,
+            model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
+            max_turns=10,
+            permission_mode="bypassPermissions",  # Use default permission mode
+            allowed_tools=self.custom_tools if self.custom_tools else [],
+            # continue_conversation=True,  # REMOVED - causes hanging issues
+        )
 
     async def __aenter__(self):
         """Enter async context manager - initialize SDK client"""
-        self.client = ClaudeSDKClient(self.sdk_options)
+        # ClaudeSDKClient with options parameter
+        self.client = ClaudeSDKClient(options=self.options)
         await self.client.__aenter__()
         return self
 
@@ -81,8 +83,8 @@ When analyzing data, look for patterns, anomalies, trends, and opportunities."""
     async def query_single(self, prompt: str, context: Optional[Dict] = None) -> str:
         """Execute a single query and return the complete response"""
         if not self.client:
-            # Use temporary client for single query
-            async with ClaudeSDKClient(self.sdk_options) as temp_client:
+            # Use temporary client for single query with the same options
+            async with ClaudeSDKClient(options=self.options) as temp_client:
                 full_prompt = self._build_prompt(prompt, context)
                 await temp_client.query(full_prompt)
 
@@ -112,6 +114,7 @@ When analyzing data, look for patterns, anomalies, trends, and opportunities."""
 
     def _build_prompt(self, prompt: str, context: Optional[Dict] = None) -> str:
         """Build a complete prompt with context"""
+        # Simple prompt building - agent context is already in system_prompt
         full_prompt = prompt
 
         if context:
@@ -122,23 +125,47 @@ When analyzing data, look for patterns, anomalies, trends, and opportunities."""
 
     def _format_message(self, message) -> Dict[str, Any]:
         """Format SDK message to consistent structure"""
-        # Handle different message types from SDK
-        if hasattr(message, '__dict__'):
-            msg_dict = message.__dict__
-        elif isinstance(message, dict):
-            msg_dict = message
+        # Handle AssistantMessage type
+        if isinstance(message, AssistantMessage):
+            content = ""
+            for block in message.content:
+                if isinstance(block, TextBlock):
+                    content += block.text
+                elif hasattr(block, 'text'):
+                    content += str(block.text)
+
+            return {
+                "type": "assistant",
+                "content": content,
+                "raw": message
+            }
+
+        # Handle ResultMessage type
+        elif isinstance(message, ResultMessage):
+            return {
+                "type": "result",
+                "content": getattr(message, 'result', ''),
+                "duration_ms": getattr(message, 'duration_ms', None),
+                "cost": getattr(message, 'total_cost_usd', None),
+                "raw": message
+            }
+
+        # Handle other message types (SystemMessage, etc.)
         else:
-            msg_dict = {"content": str(message)}
+            # Try to extract content from various possible attributes
+            content = ""
+            if hasattr(message, 'content'):
+                content = str(message.content)
+            elif hasattr(message, 'text'):
+                content = str(message.text)
+            elif hasattr(message, 'data'):
+                content = str(message.data)
 
-        # Extract type and content
-        msg_type = msg_dict.get("type", "assistant")
-        content = msg_dict.get("content", msg_dict.get("text", ""))
-
-        return {
-            "type": msg_type,
-            "content": content,
-            "raw": msg_dict
-        }
+            return {
+                "type": getattr(message, 'subtype', 'unknown'),
+                "content": content,
+                "raw": message
+            }
 
     async def collaborate(self, other_agent: 'BaseAgent', data: Any) -> Dict[str, Any]:
         """Collaborate with another agent"""

@@ -7,11 +7,11 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from scipy import stats
 
-from app.agents.base import BaseAgent
+from app.agents.base import BaseAgent, ContinuousAgent
 from app.services.data_processor import DataProcessor
 
 
-class AnalyticsAgent(BaseAgent):
+class AnalyticsAgent(ContinuousAgent):
     """Agent responsible for statistical analysis of sales data"""
 
     def __init__(self):
@@ -23,10 +23,32 @@ class AnalyticsAgent(BaseAgent):
 
     async def process(self, data: Any, context: Optional[Dict] = None) -> Dict[str, Any]:
         """Process data for analytics"""
-        if isinstance(data, pd.DataFrame):
+        # Convert dict data to string for AI analysis
+        if isinstance(data, dict):
+            # Use AI to analyze the data directly
+            data_str = self._format_data_for_analysis(data)
+            analysis = await self.query_single(
+                f"Analyze this sales/CRM data and provide insights:\n\n{data_str}",
+                context
+            )
+            return {
+                "status": "success",
+                "response": analysis,
+                "data_type": "dict"
+            }
+        elif isinstance(data, pd.DataFrame):
             df = data
         else:
-            return {"status": "error", "message": "Analytics requires DataFrame input"}
+            # Try to convert to string and analyze
+            analysis = await self.query_single(
+                f"Analyze this data and provide insights:\n\n{str(data)}",
+                context
+            )
+            return {
+                "status": "success",
+                "response": analysis,
+                "data_type": "unknown"
+            }
 
         # Get schema from context or detect it
         schema = context.get("previous_results", {}).get("DataIngestionAgent", {}).get("schema", {})
@@ -176,6 +198,14 @@ class AnalyticsAgent(BaseAgent):
                     velocity["deals_per_month"] = velocity["deals_per_day"] * 30
 
         return velocity
+
+    def _format_data_for_analysis(self, data: Dict) -> str:
+        """Format dictionary data for AI analysis"""
+        import json
+        try:
+            return json.dumps(data, indent=2, default=str)
+        except:
+            return str(data)
 
     async def _generate_analytical_insights(self, df: pd.DataFrame, pipeline_metrics: Dict,
                                            trend_analysis: Dict, cohort_metrics: Dict,

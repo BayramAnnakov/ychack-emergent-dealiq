@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 
 from app.core.config import settings
-from app.api import health, upload, insights, agents
+from app.api import health, upload, insights, agents, streaming
 
 # Create FastAPI app
 app = FastAPI(
@@ -41,6 +41,7 @@ app.include_router(health.router, prefix=f"{settings.API_V1_PREFIX}/health", tag
 app.include_router(upload.router, prefix=f"{settings.API_V1_PREFIX}/upload", tags=["upload"])
 app.include_router(insights.router, prefix=f"{settings.API_V1_PREFIX}/insights", tags=["insights"])
 app.include_router(agents.router, prefix=f"{settings.API_V1_PREFIX}/agents", tags=["agents"])
+app.include_router(streaming.router, prefix=f"{settings.API_V1_PREFIX}/streaming", tags=["streaming"])
 
 
 # Exception handler

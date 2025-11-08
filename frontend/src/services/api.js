@@ -138,4 +138,120 @@ export const checkHealth = async () => {
   return api.get('/health/')
 }
 
+// Streaming analysis with Server-Sent Events (SSE)
+export const analyzeDataStreaming = async (fileId, query, analysisType = 'general', callbacks = {}) => {
+  const {
+    onStatus = () => {},
+    onPartial = () => {},
+    onTool = () => {},
+    onComplete = () => {},
+    onError = () => {}
+  } = callbacks
+
+  console.log('=== STARTING STREAMING ANALYSIS ===')
+  console.log('File ID:', fileId)
+  console.log('Query:', query)
+  console.log('Analysis Type:', analysisType)
+
+  return new Promise((resolve, reject) => {
+    // Use fetch for SSE
+    const url = `/api/v1/streaming/analyze-stream`
+
+    console.log('Fetching URL:', url)
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        file_id: fileId,
+        query: query,
+        analysis_type: analysisType
+      })
+    })
+      .then(response => {
+        console.log('Response received, status:', response.status)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        console.log('Starting to read stream...')
+
+        // Read stream
+        function readStream() {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              console.log('Stream ended')
+              return
+            }
+
+            // Decode chunk
+            buffer += decoder.decode(value, { stream: true })
+
+            // Process complete messages
+            const lines = buffer.split('\n\n')
+            buffer = lines.pop() || '' // Keep incomplete message in buffer
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6)) // Remove 'data: ' prefix
+                  console.log('SSE message received:', data.type, data)
+
+                  // Handle different message types
+                  switch (data.type) {
+                    case 'status':
+                      console.log('Status update:', data.message, data.progress)
+                      onStatus(data)
+                      break
+                    case 'partial':
+                      console.log('Partial content received, length:', data.content?.length)
+                      onPartial(data)
+                      break
+                    case 'tool':
+                      console.log('Tool usage:', data.tool_name)
+                      onTool(data)
+                      break
+                    case 'complete':
+                      console.log('Analysis complete!')
+                      onComplete(data)
+                      resolve(data)
+                      return
+                    case 'error':
+                      console.error('Error from server:', data.message)
+                      onError(data)
+                      reject(new Error(data.message))
+                      return
+                  }
+                } catch (e) {
+                  console.error('Error parsing SSE message:', e, line)
+                }
+              }
+            }
+
+            // Continue reading
+            readStream()
+          }).catch(error => {
+            console.error('Stream read error:', error)
+            onError({ message: error.message })
+            reject(error)
+          })
+        }
+
+        readStream()
+      })
+      .catch(error => {
+        console.error('Fetch error:', error)
+        onError({ message: error.message })
+        reject(error)
+      })
+  })
+}
+
 export default api

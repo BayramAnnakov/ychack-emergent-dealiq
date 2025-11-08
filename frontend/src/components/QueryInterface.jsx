@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { Send, Sparkles, TrendingUp, Target, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { analyzeData, predictOutcomes, testHypothesis } from '../services/api'
+import { analyzeData, predictOutcomes, testHypothesis, analyzeDataStreaming } from '../services/api'
 
 function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
   const [query, setQuery] = useState('')
   const [queryType, setQueryType] = useState('analyze')
+  const [streamingStatus, setStreamingStatus] = useState('')
+  const [streamingProgress, setStreamingProgress] = useState(0)
 
   const exampleQueries = [
     { icon: Sparkles, text: "What are my top opportunities?", type: "analyze" },
@@ -22,22 +24,49 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
     }
 
     setIsLoading(true)
+    setStreamingStatus('Initializing...')
+    setStreamingProgress(0)
 
     try {
-      let result
-
-      if (queryType === 'predict') {
-        result = await predictOutcomes(fileId, 'deal_closure', query)
+      // Use streaming for analyze type
+      if (queryType === 'analyze') {
+        const result = await analyzeDataStreaming(fileId, query, 'pipeline_analysis', {
+          onStatus: (data) => {
+            setStreamingStatus(data.message)
+            setStreamingProgress(data.progress || 0)
+          },
+          onPartial: (data) => {
+            setStreamingStatus('Analyzing...')
+            setStreamingProgress(data.progress || 50)
+          },
+          onTool: (data) => {
+            setStreamingStatus(data.message)
+          },
+          onComplete: (data) => {
+            onQueryResult(data)
+            toast.success(`Analysis complete! (${data.processing_time?.toFixed(1)}s)`)
+            setStreamingStatus('')
+            setStreamingProgress(100)
+          },
+          onError: (data) => {
+            toast.error(data.message || 'Failed to analyze query')
+            setStreamingStatus('')
+            setStreamingProgress(0)
+          }
+        })
+      } else if (queryType === 'predict') {
+        const result = await predictOutcomes(fileId, 'deal_closure', query)
+        onQueryResult(result)
+        toast.success('Analysis complete!')
       } else if (queryType === 'hypothesis') {
-        result = await testHypothesis(fileId, query)
-      } else {
-        result = await analyzeData(fileId, query)
+        const result = await testHypothesis(fileId, query)
+        onQueryResult(result)
+        toast.success('Analysis complete!')
       }
-
-      onQueryResult(result)
-      toast.success('Analysis complete!')
     } catch (error) {
       toast.error(error.message || 'Failed to analyze query')
+      setStreamingStatus('')
+      setStreamingProgress(0)
     } finally {
       setIsLoading(false)
     }
@@ -119,6 +148,21 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
             </button>
           </div>
         </div>
+
+        {isLoading && streamingStatus && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-blue-700 font-medium">{streamingStatus}</span>
+              <span className="text-xs text-blue-600">{streamingProgress}%</span>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${streamingProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
 
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">Example queries:</p>
