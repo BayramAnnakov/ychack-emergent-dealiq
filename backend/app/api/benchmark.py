@@ -733,30 +733,22 @@ async def get_file(task_id: str):
     """Serve the Excel or PDF file for browser preview (without forcing download)"""
     import glob
     
-    # Look for PDF files FIRST (higher priority) - with timestamp support
+    # Look ONLY for timestamped files (new format) - exclude old non-timestamped
+    # PDF files FIRST (higher priority)
     pdf_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.pdf",
-        f"data/gdpval/outputs/{task_id}_output.pdf",
         f"data/gdpval/deliverable_files/{task_id}_*_output.pdf",
-        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
         f".claude/skills/pdf/{task_id}_*_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_*_output.pdf",
-        f"{task_id}_output.pdf"
+        f"{task_id}_*_output.pdf"
     ]
     
-    # Then look for Excel files
+    # Then Excel files
     excel_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.xlsx",
-        f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/reference_files/{task_id}_output.xlsx",
         f".claude/skills/xlsx/{task_id}_*_output.xlsx",
-        f".claude/skills/xlsx/{task_id}_output.xlsx",
-        f"{task_id}_*_output.xlsx",
-        f"{task_id}_output.xlsx"
+        f"{task_id}_*_output.xlsx"
     ]
 
     file_path = None
