@@ -132,28 +132,42 @@ function InsightsDashboard({ insights, isLoading, analysisId }) {
       {/* Tabbed Navigation */}
       <div className="card">
         <div className="border-b border-gray-200 mb-6">
-          <nav className="flex space-x-4" aria-label="Tabs">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors
-                    ${isActive
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }
-                  `}
-                >
-                  <Icon className="h-5 w-5" />
-                  {tab.label}
-                </button>
-              )
-            })}
-          </nav>
+          <div className="flex items-center justify-between">
+            <nav className="flex space-x-4" aria-label="Tabs">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors
+                      ${isActive
+                        ? 'border-primary-600 text-primary-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </nav>
+            
+            {/* Export PDF Button */}
+            {analysisId && (
+              <button
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className="btn btn-primary flex items-center space-x-2"
+              >
+                <FileDown className="h-4 w-4" />
+                <span>{exportingPdf ? 'Generating...' : 'Export as PDF'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Content */}
