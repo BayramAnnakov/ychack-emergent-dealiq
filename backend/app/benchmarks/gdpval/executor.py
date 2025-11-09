@@ -103,8 +103,9 @@ class GDPvalExecutor:
                         print(f"   Duration: {update.get('duration_ms', 0)}ms")
                         print(f"   Cost: ${update.get('cost_usd', 0):.4f}")
 
-            # Combine deliverable text
-            result["deliverable_text"] = "\n".join(deliverable_text_parts)
+            # Combine deliverable text and extract final analysis
+            full_text = "\n".join(deliverable_text_parts)
+            result["deliverable_text"] = self._extract_final_analysis(full_text)
 
             # Verify output file was created
             if os.path.exists(output_path):
@@ -132,6 +133,65 @@ class GDPvalExecutor:
             self.results.append(result)
 
         return result
+
+    def _extract_final_analysis(self, full_text: str) -> str:
+        """
+        Extract the final analysis from the agent conversation.
+        Removes intermediate conversation steps and returns only substantive analysis.
+
+        Args:
+            full_text: Full conversation text from agent
+
+        Returns:
+            Cleaned analysis text
+        """
+        # Look for the final summary section (starts with ## 📊)
+        if '## 📊' in full_text:
+            # Extract everything from this marker onwards
+            parts = full_text.split('## 📊')
+            if len(parts) > 1:
+                return '## 📊' + parts[-1]  # Get the last occurrence
+
+        # Look for other common summary markers
+        summary_markers = [
+            '## Summary',
+            '## Analysis Complete',
+            '## Final Analysis',
+            '---\n\n## '  # Common markdown section separator
+        ]
+
+        for marker in summary_markers:
+            if marker in full_text:
+                parts = full_text.split(marker)
+                if len(parts) > 1:
+                    return marker + parts[-1]
+
+        # If no clear summary found, look for the last substantial section
+        # (more than 500 characters)
+        lines = full_text.split('\n')
+        sections = []
+        current_section = []
+
+        for line in lines:
+            if line.strip().startswith('##'):
+                if current_section:
+                    sections.append('\n'.join(current_section))
+                current_section = [line]
+            else:
+                current_section.append(line)
+
+        if current_section:
+            sections.append('\n'.join(current_section))
+
+        # Return the longest substantial section (likely the final analysis)
+        if sections:
+            longest_section = max(sections, key=len)
+            if len(longest_section) > 500:
+                return longest_section
+
+        # Fallback: Return last 50% of text to avoid intermediate steps
+        midpoint = len(full_text) // 2
+        return full_text[midpoint:]
 
     def _find_output_file(self, filename: str) -> Optional[str]:
         """

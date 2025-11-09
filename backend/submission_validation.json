@@ -1,0 +1,11 @@
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [],
+  "stats": {
+    "total_tasks": 1,
+    "completed": 1,
+    "pending": 0,
+    "failed": 0
+  }
+}
