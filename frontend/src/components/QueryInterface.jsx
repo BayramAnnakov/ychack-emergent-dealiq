@@ -32,8 +32,16 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
     }
 
     setIsLoading(true)
-    setStreamingStatus('Initializing...')
+    setStreamingStatus('Initializing Claude analysis...')
     setStreamingProgress(0)
+    setProgressLog([])
+    setShowConfetti(false)
+    setExecutionPhases([
+      { name: 'Upload', status: 'complete', icon: '🚀' },
+      { name: 'Analyze', status: 'active', icon: '🔍' },
+      { name: 'Generate', status: 'pending', icon: '💡' },
+      { name: 'Deliver', status: 'pending', icon: '✅' }
+    ])
 
     try {
       // Use streaming for analyze type
@@ -42,17 +50,48 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
           onStatus: (data) => {
             setStreamingStatus(data.message)
             setStreamingProgress(data.progress || 0)
+            setProgressLog(prev => [...prev, { 
+              message: data.message, 
+              time: new Date().toLocaleTimeString(),
+              progress: data.progress || 0
+            }])
+            
+            // Update phases
+            const prog = data.progress || 0
+            setExecutionPhases(phases => {
+              const newPhases = [...phases]
+              if (prog >= 30 && prog < 70) {
+                newPhases[1].status = 'complete'
+                newPhases[2].status = 'active'
+              } else if (prog >= 70) {
+                newPhases[2].status = 'complete'
+                newPhases[3].status = 'active'
+              }
+              return newPhases
+            })
           },
           onPartial: (data) => {
-            // Use the message from the backend if available
             setStreamingStatus(data.message || 'Analyzing...')
             setStreamingProgress(data.progress || 50)
+            setProgressLog(prev => [...prev, { 
+              message: data.message || 'Analyzing...', 
+              time: new Date().toLocaleTimeString(),
+              progress: data.progress || 50
+            }])
           },
           onTool: (data) => {
             setStreamingStatus(data.message)
             setStreamingProgress(data.progress || streamingProgress)
+            setProgressLog(prev => [...prev, { 
+              message: data.message, 
+              time: new Date().toLocaleTimeString(),
+              progress: data.progress || streamingProgress
+            }])
           },
           onComplete: (data) => {
+            setExecutionPhases(phases => phases.map(p => ({ ...p, status: 'complete' })))
+            setShowConfetti(true)
+            
             onQueryResult(data)
             toast.success(`Analysis complete! (${data.processing_time?.toFixed(1)}s)`)
             setStreamingStatus('')
