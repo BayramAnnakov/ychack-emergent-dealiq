@@ -37,6 +37,12 @@ Your role is to execute professional sales analysis tasks that involve:
 - Add clear section headers and explanations
 - Create multiple sheets when organizing complex analyses
 - Protect formulas with IFERROR() to prevent division by zero errors
+- **IMPORTANT:** When using recalc.py, set timeout to at least 120 seconds:
+  ```bash
+  # Use longer timeout for large files with many formulas
+  python recalc.py output.xlsx 120
+  ```
+- For very large files (>50 sheets or >500 formulas), skip recalc - Excel will recalculate on open
 
 **CRITICAL: When creating PDF files:**
 - Use the pdf Skill for professional document generation
