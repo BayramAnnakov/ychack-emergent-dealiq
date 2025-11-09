@@ -364,11 +364,20 @@ async def execute_benchmark_task(task_id: str):
                     content_blocks = update.get("content", "")
                     tool_uses = update.get("tool_uses", [])
                     thinking = update.get("thinking", "")
+                    message_id = update.get("id", "")
+                    message_usage = update.get("usage", {})
                     
-                    # Increment turn count for cost estimation
-                    turn_count += 1
-                    estimated_cost = turn_count * COST_PER_TURN
-                    estimated_tokens = turn_count * TOKENS_PER_TURN
+                    # Extract ACTUAL usage from this assistant message (not estimated!)
+                    if message_usage:
+                        input_tokens = message_usage.get("input_tokens", 0)
+                        output_tokens = message_usage.get("output_tokens", 0)
+                        tokens_used = input_tokens + output_tokens
+                        
+                        # Calculate cost from usage (Sonnet pricing as of Sept 2025)
+                        # Input: $0.003 per 1K tokens, Output: $0.015 per 1K tokens
+                        input_cost = (input_tokens / 1000) * 0.003
+                        output_cost = (output_tokens / 1000) * 0.015
+                        total_cost = input_cost + output_cost
                     
                     # Show thinking if available (extended thinking models)
                     if thinking and thinking.strip():
