@@ -55,6 +55,10 @@ function ExcelPreview({ taskId, fileName }) {
     }))
   }
 
+  const handleDownload = () => {
+    downloadExcelResult(taskId)
+  }
+
   const openInGoogleSheets = () => {
     // First download the file
     const downloadUrl = `/api/v1/benchmark/download/${taskId}`
