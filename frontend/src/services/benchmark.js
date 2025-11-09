@@ -56,15 +56,18 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
         if (line.startsWith('data: ')) {
           try {
             const data = JSON.parse(line.slice(6))
+            
+            console.log('SSE data received:', data)
 
             if (data.status === 'complete') {
               // Task completed
+              console.log('Task complete! Calling onComplete with:', data)
               if (onComplete) {
                 onComplete({
                   taskId: data.task_id,
-                  task_id: data.task_id,  // Also include snake_case
+                  task_id: data.task_id,
                   fileName: data.file_name,
-                  file_name: data.file_name,  // Also include snake_case
+                  file_name: data.file_name,
                   formulaCount: data.formula_count,
                   sections: data.sections,
                   errors: data.errors
