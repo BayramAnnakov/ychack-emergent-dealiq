@@ -16,14 +16,21 @@ function ExcelPreview({ taskId, fileName }) {
   const loadExcelFile = async () => {
     try {
       setLoading(true)
+      console.log('Loading Excel file for task:', taskId)
+      
       const response = await fetch(`/api/v1/benchmark/file/${taskId}`)
+      console.log('Response status:', response.status, response.statusText)
       
       if (!response.ok) {
-        throw new Error('Failed to load Excel file')
+        throw new Error(`Failed to load Excel file: ${response.status} ${response.statusText}`)
       }
 
       const arrayBuffer = await response.arrayBuffer()
+      console.log('Received arrayBuffer, size:', arrayBuffer.byteLength)
+      
       const wb = XLSX.read(arrayBuffer, { type: 'array' })
+      console.log('Workbook loaded with sheets:', wb.SheetNames)
+      
       setWorkbook(wb)
       setLoading(false)
     } catch (err) {
