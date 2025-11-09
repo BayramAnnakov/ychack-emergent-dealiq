@@ -88,14 +88,13 @@ function ExcelPreview({ taskId, fileName }) {
     return (
       <div className="bg-red-50 rounded-lg border border-red-200 p-6">
         <p className="text-red-800">Failed to load Excel preview: {error}</p>
-        <a
-          href={`/api/v1/benchmark/download/${taskId}`}
-          download
+        <button
+          onClick={handleDownload}
           className="btn btn-sm btn-secondary mt-3 inline-flex items-center"
         >
           <Download className="h-4 w-4 mr-2" />
           Download Excel File
-        </a>
+        </button>
       </div>
     )
   }
