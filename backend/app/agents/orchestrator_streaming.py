@@ -73,7 +73,7 @@ Format your responses with clear sections and bullet points.
             cwd=backend_dir,
             cli_path="/home/appuser/node_modules/.bin/claude",
             setting_sources=["user", "project"],  # Load settings for consistency
-            allowed_tools=["Read", "Bash"]  # Only need Read for data, Bash for analysis
+            allowed_tools=["Skill", "Read", "Bash"]  # Include Skill for xlsx/pdf capabilities
         )
 
     async def analyze_streaming(
