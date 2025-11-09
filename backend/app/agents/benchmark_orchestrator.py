@@ -43,7 +43,8 @@ When creating Excel files:
 Be specific, data-driven, and provide professional-grade outputs."""
 
         # Get backend directory (where .claude/skills is located)
-        backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+        # Explicit path for Emergent environment with appuser
+        backend_dir = "/app/backend"  # Explicit path that appuser can access
 
         if self.verbose:
             print(f"📂 Backend dir: {backend_dir}")
@@ -56,7 +57,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             system_prompt=self.system_prompt,
             model="sonnet",  # Use latest Sonnet for best performance
             max_turns=30,    # More turns for complex Excel tasks with data analysis
-            permission_mode="bypassPermissions",
+            permission_mode="default",  # Works with non-root user (appuser)
             cwd=backend_dir,
             setting_sources=["user", "project"],
             allowed_tools=["Skill", "Read", "Write", "Bash"]
