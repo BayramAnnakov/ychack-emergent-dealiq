@@ -256,12 +256,13 @@ function BenchmarkResults({ result }) {
         </div>
       )}
 
-      {/* Analysis Summary */}
-      <div className="card">
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-          <Award className="h-5 w-5 text-yellow-500 mr-2" />
-          Analysis Highlights
-        </h3>
+      {/* Analysis Summary - Only for Excel files with hardcoded highlights */}
+      {!isPdfFile && (
+        <div className="card">
+          <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+            <Award className="h-5 w-5 text-yellow-500 mr-2" />
+            Analysis Highlights
+          </h3>
         <div className="space-y-3 text-sm text-gray-700">
           <div className="flex items-start space-x-2">
             <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
