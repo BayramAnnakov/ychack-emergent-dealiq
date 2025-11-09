@@ -188,13 +188,15 @@ Format your responses with clear sections and bullet points."""
 
                         total_content_length += len(content)
 
-                        # Yield the message
+                        # Yield the message with usage data
                         yield {
                             "type": "assistant",
                             "content": content,
                             "tool_uses": tool_uses,
                             "message_number": message_count,
-                            "timestamp": current_time
+                            "timestamp": current_time,
+                            "id": getattr(message, 'id', None),
+                            "usage": getattr(message, 'usage', None)
                         }
 
                     elif isinstance(message, ResultMessage):
