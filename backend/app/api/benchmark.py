@@ -240,6 +240,7 @@ async def get_task_history():
                     completed_tasks.append({
                         "task_id": task_id,
                         "task_title": task_titles.get(task_id, "Unknown Task"),
+                        "task_description": task_descriptions.get(task_id, ""),
                         "file_name": filename,
                         "file_type": "pdf" if is_pdf else "excel",
                         "file_size": file_size,
