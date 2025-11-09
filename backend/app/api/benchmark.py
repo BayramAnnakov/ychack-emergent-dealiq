@@ -269,6 +269,37 @@ async def get_task_result_metadata(task_id: str):
         raise HTTPException(status_code=500, detail=f"Error reading Excel file: {str(e)}")
 
 
+@router.get("/file/{task_id}")
+async def get_excel_file(task_id: str):
+    """Serve the Excel file for browser preview (without forcing download)"""
+    
+    # Look for the file
+    possible_paths = [
+        f"data/gdpval/outputs/{task_id}_output.xlsx",
+        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
+        f"data/gdpval/reference_files/{task_id}_output.xlsx",
+        f"{task_id}_output.xlsx"
+    ]
+
+    file_path = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            file_path = path
+            break
+
+    if not file_path:
+        raise HTTPException(status_code=404, detail="Excel file not found")
+
+    return FileResponse(
+        file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"{task_id}_output.xlsx",
+        headers={
+            "Content-Disposition": f'inline; filename="{task_id}_output.xlsx"'
+        }
+    )
+
+
 @router.get("/download/{task_id}")
 async def download_excel_result(task_id: str):
     """Download the generated Excel file for a task"""
