@@ -143,4 +143,67 @@ async def predict_outcomes(
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
+
+
+
+@router.get("/history")
+async def get_analysis_history():
+    """Get history of CRM analyses from saved files"""
+    import os
+    import json
+    from datetime import datetime
+    
+    history_dir = "data/crm_analyses"
+    os.makedirs(history_dir, exist_ok=True)
+    
+    analyses = []
+    
+    if os.path.exists(history_dir):
+        for filename in os.listdir(history_dir):
+            if filename.endswith("_analysis.json"):
+                file_path = os.path.join(history_dir, filename)
+                try:
+                    with open(file_path, 'r') as f:
+                        data = json.load(f)
+                    
+                    file_stat = os.stat(file_path)
+                    
+                    analyses.append({
+                        "analysis_id": filename.replace("_analysis.json", ""),
+                        "query": data.get("query", ""),
+                        "query_type": data.get("query_type", "analyze"),
+                        "insight_count": len(data.get("insights", [])),
+                        "created_at": datetime.fromtimestamp(file_stat.st_ctime).isoformat(),
+                        "file_name": data.get("original_filename", ""),
+                        "preview": data.get("insights", [{}])[0].get("description", "")[:150] if data.get("insights") else ""
+                    })
+                except Exception as e:
+                    print(f"Error loading analysis {filename}: {e}")
+                    continue
+    
+    # Sort by created time (newest first)
+    analyses.sort(key=lambda x: x["created_at"], reverse=True)
+    
+    return {
+        "analyses": analyses,
+        "total": len(analyses)
+    }
+
+
+@router.get("/history/{analysis_id}")
+async def get_analysis_detail(analysis_id: str):
+    """Get full details of a saved analysis"""
+    import os
+    import json
+    
+    file_path = f"data/crm_analyses/{analysis_id}_analysis.json"
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+    
+    return data
+
         raise HTTPException(status_code=500, detail=str(e))
