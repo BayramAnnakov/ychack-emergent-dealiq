@@ -1,13 +1,34 @@
-import React from 'react'
-import { Download, CheckCircle, FileSpreadsheet, ExternalLink, Award } from 'lucide-react'
-import { downloadExcelResult } from '../services/benchmark'
+import React, { useState, useEffect } from 'react'
+import { Download, CheckCircle, FileSpreadsheet, ExternalLink, Award, Table } from 'lucide-react'
+import { downloadExcelResult, getTaskResult, getDownloadUrl } from '../services/benchmark'
 
 function BenchmarkResults({ result }) {
+  const [fileMetadata, setFileMetadata] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (result?.task_id || result?.taskId) {
+      const taskId = result.task_id || result.taskId
+      // Fetch file metadata
+      getTaskResult(taskId)
+        .then(data => {
+          setFileMetadata(data)
+          setLoading(false)
+        })
+        .catch(err => {
+          console.error('Failed to load file metadata:', err)
+          setLoading(false)
+        })
+    }
+  }, [result])
+
   if (!result) return null
+
+  const taskId = result.task_id || result.taskId
 
   const handleDownload = () => {
     // Trigger Excel file download using service
-    downloadExcelResult(result.taskId)
+    downloadExcelResult(taskId)
   }
 
   const viewOnHuggingFace = () => {
