@@ -157,10 +157,13 @@ function TaskHistory() {
                   </h3>
                   {task.task_description && (
                     <div className="mt-1">
-                      <p className={`text-sm text-gray-600 ${expandedDescriptions[task.task_id] ? '' : 'line-clamp-2'}`}>
-                        {task.task_description}
+                      <p className={`text-sm text-gray-600 whitespace-pre-line ${expandedDescriptions[task.task_id] ? '' : 'line-clamp-2'}`}>
+                        {expandedDescriptions[task.task_id] 
+                          ? (task.task_description_full || task.task_description)
+                          : task.task_description
+                        }
                       </p>
-                      {task.task_description.length > 100 && (
+                      {(task.task_description_full || task.task_description.length > 100) && (
                         <button
                           onClick={() => setExpandedDescriptions(prev => ({
                             ...prev,
