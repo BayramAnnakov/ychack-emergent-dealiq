@@ -420,7 +420,7 @@ async def execute_benchmark_task(task_id: str):
             result = {
                 "status": "complete",
                 "task_id": task_id,
-                "file_name": f"{task_id}_output.xlsx",
+                "file_name": output_filename,
                 "output_text": output_text[:500] if output_text else "Analysis complete",
                 "files_created": len(output_files),
                 "errors": 0,
