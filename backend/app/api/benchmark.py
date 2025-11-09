@@ -129,6 +129,34 @@ async def get_task_history():
     import openpyxl
     from datetime import datetime
     
+    # Load task titles for matching
+    tasks_file = "data/gdpval/sales_reps/sales_reps_tasks.json"
+    task_titles = {}
+    
+    if os.path.exists(tasks_file):
+        with open(tasks_file, 'r') as f:
+            all_tasks = json.load(f)
+            for task in all_tasks:
+                task_id = task.get("task_id")
+                prompt = task.get("prompt", "")
+                
+                # Generate title (same logic as in /tasks endpoint)
+                prompt_lower = prompt.lower()
+                if "automotive" in prompt_lower and "parts" in prompt_lower:
+                    title = "Automotive Parts Check-In Procedure"
+                elif "beutist" in prompt_lower and "set" in prompt_lower:
+                    title = "Beutist Set Inventory Analysis"
+                elif "xr retailer" in prompt_lower and "makeup" in prompt_lower:
+                    title = "XR Retailer Makeup Sales Analysis"
+                elif "alcoholic beverages" in prompt_lower or "inventory" in prompt_lower and "stockout" in prompt_lower:
+                    title = "Beverage Inventory Stockout Prevention"
+                elif "fragrance" in prompt_lower and "pricing" in prompt_lower:
+                    title = "Men's Fragrance Competitive Pricing"
+                else:
+                    title = prompt.split('.')[0][:60]
+                
+                task_titles[task_id] = title
+    
     completed_tasks = []
     
     # Scan for output files in various directories
@@ -136,6 +164,8 @@ async def get_task_history():
         "data/gdpval/outputs",
         "data/gdpval/deliverable_files", 
         "data/gdpval/reference_files",
+        ".claude/skills/xlsx",
+        ".claude/skills/pdf",
         "."
     ]
     
@@ -146,12 +176,13 @@ async def get_task_history():
             continue
             
         for filename in os.listdir(search_path):
-            if filename.endswith("_output.xlsx") and filename not in seen_files:
+            if (filename.endswith("_output.xlsx") or filename.endswith("_output.pdf")) and filename not in seen_files:
                 seen_files.add(filename)
                 file_path = os.path.join(search_path, filename)
                 
                 # Extract task ID from filename
-                task_id = filename.replace("_output.xlsx", "")
+                task_id = filename.replace("_output.xlsx", "").replace("_output.pdf", "")
+                is_pdf = filename.endswith(".pdf")
                 
                 try:
                     # Get file stats
@@ -160,15 +191,21 @@ async def get_task_history():
                     created_at = datetime.fromtimestamp(file_stat.st_ctime).isoformat()
                     modified_at = datetime.fromtimestamp(file_stat.st_mtime).isoformat()
                     
-                    # Load workbook to get sheet info
-                    wb = openpyxl.load_workbook(file_path, read_only=True)
-                    sheet_count = len(wb.sheetnames)
-                    sheet_names = wb.sheetnames
-                    wb.close()
+                    # For Excel files, get sheet info
+                    sheet_count = 0
+                    sheet_names = []
+                    
+                    if not is_pdf:
+                        wb = openpyxl.load_workbook(file_path, read_only=True)
+                        sheet_count = len(wb.sheetnames)
+                        sheet_names = wb.sheetnames
+                        wb.close()
                     
                     completed_tasks.append({
                         "task_id": task_id,
+                        "task_title": task_titles.get(task_id, "Unknown Task"),
                         "file_name": filename,
+                        "file_type": "pdf" if is_pdf else "excel",
                         "file_size": file_size,
                         "sheet_count": sheet_count,
                         "sheet_names": sheet_names[:3],  # First 3 sheets
