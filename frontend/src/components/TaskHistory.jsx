@@ -137,14 +137,21 @@ function TaskHistory() {
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-4 flex-1">
-                <div className="bg-green-100 rounded-lg p-3">
-                  <FileSpreadsheet className="h-6 w-6 text-green-600" />
+                <div className={`rounded-lg p-3 ${task.file_type === 'pdf' ? 'bg-red-100' : 'bg-green-100'}`}>
+                  {task.file_type === 'pdf' ? (
+                    <FileText className="h-6 w-6 text-red-600" />
+                  ) : (
+                    <FileSpreadsheet className="h-6 w-6 text-green-600" />
+                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-gray-900 truncate">
-                    {task.file_name}
+                    {task.task_title || task.file_name}
                   </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {task.file_name}
+                  </p>
                   
                   <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
@@ -152,17 +159,27 @@ function TaskHistory() {
                       <span>{formatDate(task.modified_at)}</span>
                     </div>
                     
-                    <div className="flex items-center space-x-1">
-                      <Table className="h-4 w-4" />
-                      <span>{task.sheet_count} sheets</span>
-                    </div>
+                    {task.file_type === 'excel' && task.sheet_count > 0 && (
+                      <div className="flex items-center space-x-1">
+                        <Table className="h-4 w-4" />
+                        <span>{task.sheet_count} sheets</span>
+                      </div>
+                    )}
                     
                     <div className="text-gray-500">
                       {formatFileSize(task.file_size)}
                     </div>
+                    
+                    <span className={`px-2 py-1 text-xs rounded ${
+                      task.file_type === 'pdf' 
+                        ? 'bg-red-100 text-red-700' 
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      {task.file_type === 'pdf' ? 'PDF' : 'Excel'}
+                    </span>
                   </div>
 
-                  {task.sheet_names && task.sheet_names.length > 0 && (
+                  {task.file_type === 'excel' && task.sheet_names && task.sheet_names.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {task.sheet_names.map((sheet, idx) => (
                         <span
@@ -183,13 +200,15 @@ function TaskHistory() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 ml-4 flex-shrink-0">
-                <button
-                  onClick={() => handleViewTask(task)}
-                  className="btn btn-sm btn-secondary flex items-center space-x-1 w-full sm:w-auto"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>Preview</span>
-                </button>
+                {task.file_type === 'excel' && (
+                  <button
+                    onClick={() => handleViewTask(task)}
+                    className="btn btn-sm btn-secondary flex items-center space-x-1 w-full sm:w-auto"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>Preview</span>
+                  </button>
+                )}
                 
                 <button
                   onClick={() => downloadExcelResult(task.task_id)}
