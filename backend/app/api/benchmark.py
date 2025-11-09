@@ -289,7 +289,10 @@ async def download_excel_result(task_id: str):
     return FileResponse(
         file_path,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename=f"{task_id}_output.xlsx"
+        filename=f"{task_id}_output.xlsx",
+        headers={
+            "Content-Disposition": f'attachment; filename="{task_id}_output.xlsx"'
+        }
     )
 
 
