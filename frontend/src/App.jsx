@@ -7,6 +7,7 @@ import InsightsDashboard from './components/InsightsDashboard'
 import PipelineMetrics from './components/PipelineMetrics'
 import BenchmarkInterface from './components/BenchmarkInterface'
 import BenchmarkResults from './components/BenchmarkResults'
+import TaskHistory from './components/TaskHistory'
 
 function App() {
   const [mode, setMode] = useState('crm') // 'crm' or 'benchmark'
@@ -15,6 +16,7 @@ function App() {
   const [metrics, setMetrics] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [benchmarkResult, setBenchmarkResult] = useState(null)
+  const [benchmarkTab, setBenchmarkTab] = useState('execute') // 'execute' or 'history'
 
   const handleFileUpload = (fileData) => {
     setUploadedFile(fileData)
