@@ -608,7 +608,15 @@ async def get_file(task_id: str):
 async def download_excel_result(task_id: str):
     """Download the generated Excel or PDF file for a task"""
 
-    # Look for Excel files first
+    # Check for PDF files FIRST (higher priority)
+    pdf_paths = [
+        f"data/gdpval/outputs/{task_id}_output.pdf",
+        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
+        f".claude/skills/pdf/{task_id}_output.pdf",
+        f"{task_id}_output.pdf"
+    ]
+    
+    # Then check Excel files
     excel_paths = [
         f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
@@ -616,30 +624,22 @@ async def download_excel_result(task_id: str):
         f".claude/skills/xlsx/{task_id}_output.xlsx",
         f"{task_id}_output.xlsx"
     ]
-    
-    # Also check for PDF files
-    pdf_paths = [
-        f"data/gdpval/outputs/{task_id}_output.pdf",
-        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_output.pdf"
-    ]
 
     file_path = None
     is_pdf = False
     
-    # Check Excel files first
-    for path in excel_paths:
+    # Check PDF files first (higher priority)
+    for path in pdf_paths:
         if os.path.exists(path):
             file_path = path
+            is_pdf = True
             break
     
-    # If no Excel, check PDF files
+    # If no PDF, check Excel files
     if not file_path:
-        for path in pdf_paths:
+        for path in excel_paths:
             if os.path.exists(path):
                 file_path = path
-                is_pdf = True
                 break
 
     if not file_path:
