@@ -78,6 +78,13 @@ async def list_benchmark_tasks():
             prompt = task.get("prompt", "")
             description = prompt[:200] + "..." if len(prompt) > 200 else prompt
             
+            # Convert reference file URLs to proxy URLs for Google Sheets compatibility
+            reference_file_urls = task.get("reference_file_urls", [])
+            proxy_urls = [
+                f"/api/v1/benchmark/reference-file?url={url}"
+                for url in reference_file_urls
+            ]
+            
             formatted_tasks.append({
                 "task_id": task.get("task_id"),
                 "title": generate_title_from_prompt(prompt),
@@ -86,7 +93,7 @@ async def list_benchmark_tasks():
                 "description": description,
                 "full_prompt": prompt,
                 "reference_files": task.get("reference_files", []),
-                "reference_file_urls": task.get("reference_file_urls", []),
+                "reference_file_urls": proxy_urls,
                 "has_reference_files": len(task.get("reference_files", [])) > 0
             })
         
