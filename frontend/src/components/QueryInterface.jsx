@@ -8,6 +8,14 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
   const [queryType, setQueryType] = useState('analyze')
   const [streamingStatus, setStreamingStatus] = useState('')
   const [streamingProgress, setStreamingProgress] = useState(0)
+  const [progressLog, setProgressLog] = useState([])
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [executionPhases, setExecutionPhases] = useState([
+    { name: 'Upload', status: 'complete', icon: '🚀' },
+    { name: 'Analyze', status: 'pending', icon: '🔍' },
+    { name: 'Generate', status: 'pending', icon: '💡' },
+    { name: 'Deliver', status: 'pending', icon: '✅' }
+  ])
 
   const exampleQueries = [
     { icon: Sparkles, text: "What are my top opportunities?", type: "analyze" },
