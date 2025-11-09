@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FileSpreadsheet, Play, CheckCircle, AlertCircle, Loader, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { executeBenchmarkTask } from '../services/benchmark'
+import ReferenceFilePreview from './ReferenceFilePreview'
 
 function BenchmarkInterface({ onResultReady }) {
   const [executing, setExecuting] = useState(false)
