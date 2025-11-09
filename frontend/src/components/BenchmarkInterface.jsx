@@ -315,6 +315,19 @@ function BenchmarkInterface({ onResultReady }) {
                   : 'Claude Agent SDK is working on your professional report...'
                 }
               </p>
+              
+              {/* QA Badge when complete */}
+              {progress >= 100 && qaScore !== null && (
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-2 rounded-full border border-green-200">
+                  <span className="text-green-600 font-semibold">🛡️</span>
+                  <span className="text-sm font-semibold text-gray-700">Quality Score:</span>
+                  <span className={`text-lg font-bold ${
+                    qaScore >= 90 ? 'text-green-600' : qaScore >= 70 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {qaScore}/100
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Execution Timeline */}
