@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { FileSpreadsheet, Download, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { downloadExcelResult } from '../services/benchmark'
 
 function ExcelPreview({ taskId, fileName }) {
   const [workbook, setWorkbook] = useState(null)
