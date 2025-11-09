@@ -101,6 +101,7 @@ function BenchmarkInterface({ onResultReady }) {
           }])
         },
         onComplete: (result) => {
+          console.log('BenchmarkInterface onComplete called with:', result)
           setProgress(100)
           setStatus('Complete!')
           
@@ -114,12 +115,12 @@ function BenchmarkInterface({ onResultReady }) {
           const isPdf = result.file_name?.endsWith('.pdf')
           toast.success(isPdf ? 'PDF report generated successfully!' : 'Excel report generated successfully!')
 
+          console.log('Calling onResultReady with result:', result)
           if (onResultReady) {
             onResultReady(result)
           }
 
           // Don't auto-close - user closes manually with X button
-          // setTimeout removed - modal stays open for user to review
         },
         onError: (error) => {
           toast.error(error.message || 'Failed to execute task')
