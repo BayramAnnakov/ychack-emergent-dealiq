@@ -52,7 +52,10 @@ function BenchmarkInterface({ onResultReady }) {
         onComplete: (result) => {
           setProgress(100)
           setStatus('Complete!')
-          toast.success('Excel report generated successfully!')
+          
+          // Dynamic success message based on file type
+          const isPdf = result.file_name?.endsWith('.pdf')
+          toast.success(isPdf ? 'PDF report generated successfully!' : 'Excel report generated successfully!')
 
           if (onResultReady) {
             onResultReady(result)
