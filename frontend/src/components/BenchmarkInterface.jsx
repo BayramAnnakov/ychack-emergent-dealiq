@@ -245,9 +245,30 @@ function BenchmarkInterface({ onResultReady }) {
           </div>
         </>
       ) : (
-        /* Centered Progress Display */
+        /* Centered Progress Display with Tier 1 Enhancements */
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          {/* Confetti Effect */}
+          {showConfetti && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {[...Array(50)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute animate-ping"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 0.5}s`,
+                    fontSize: `${Math.random() * 20 + 20}px`
+                  }}
+                >
+                  {['🎉', '✨', '🎊', '⭐', '🏆'][Math.floor(Math.random() * 5)]}
+                </div>
+              ))}
+            </div>
+          )}
+          
           <div className="bg-white rounded-lg shadow-2xl p-8 max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header with Cost & Tokens */}
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                 <Loader className="h-8 w-8 text-blue-600 animate-spin" />
@@ -255,16 +276,71 @@ function BenchmarkInterface({ onResultReady }) {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 {selectedTask?.title || 'Executing Task'}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-3">
                 Claude Agent SDK is working on your professional report...
               </p>
+              
+              {/* Live Cost & Token Tracking */}
+              <div className="flex items-center justify-center space-x-6 text-sm">
+                <div className="flex items-center space-x-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                  <span className="text-green-600 font-semibold">💰</span>
+                  <span className="text-gray-700">Cost:</span>
+                  <span className="font-mono font-bold text-green-700">
+                    ${costUsd.toFixed(4)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
+                  <span className="text-purple-600 font-semibold">🔢</span>
+                  <span className="text-gray-700">Tokens:</span>
+                  <span className="font-mono font-bold text-purple-700">
+                    {tokensUsed.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Execution Timeline */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                {executionPhases.map((phase, idx) => (
+                  <React.Fragment key={phase.name}>
+                    <div className="flex flex-col items-center">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl mb-2 transition-all duration-300 ${
+                        phase.status === 'complete' 
+                          ? 'bg-green-500 text-white scale-110 shadow-lg' 
+                          : phase.status === 'active'
+                          ? 'bg-blue-500 text-white animate-pulse shadow-md'
+                          : 'bg-gray-200 text-gray-400'
+                      }`}>
+                        {phase.icon}
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        phase.status === 'complete' 
+                          ? 'text-green-700' 
+                          : phase.status === 'active'
+                          ? 'text-blue-700'
+                          : 'text-gray-500'
+                      }`}>
+                        {phase.name}
+                      </span>
+                    </div>
+                    {idx < executionPhases.length - 1 && (
+                      <div className={`flex-1 h-1 mx-2 rounded transition-all duration-500 ${
+                        executionPhases[idx + 1].status !== 'pending' 
+                          ? 'bg-gradient-to-r from-green-400 to-green-500' 
+                          : 'bg-gray-200'
+                      }`} />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
 
             {/* Progress Bar */}
             <div className="mb-6">
-              <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div className="bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 flex items-center justify-end"
+                  className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 h-full transition-all duration-300 flex items-center justify-end"
                   style={{ width: `${progress}%` }}
                 >
                   <span className="text-white text-xs font-bold pr-2">
@@ -273,6 +349,22 @@ function BenchmarkInterface({ onResultReady }) {
                 </div>
               </div>
             </div>
+
+            {/* Active Skills Display */}
+            {activeSkills.length > 0 && (
+              <div className="mb-4 flex items-center justify-center space-x-2">
+                <span className="text-xs text-gray-600 font-semibold">Active Skills:</span>
+                {activeSkills.map(skill => (
+                  <span
+                    key={skill}
+                    className="inline-flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse"
+                  >
+                    <span>🎯</span>
+                    <span className="uppercase">{skill}</span>
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Current Status */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -293,11 +385,11 @@ function BenchmarkInterface({ onResultReady }) {
               </div>
             </div>
 
-            {/* Additional Info */}
+            {/* Additional Info with Live Stats */}
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-3 gap-4 text-center text-xs">
                 <div>
-                  <p className="text-gray-500">Skills Active</p>
+                  <p className="text-gray-500">Skills Available</p>
                   <p className="font-semibold text-blue-600">xlsx, pdf</p>
                 </div>
                 <div>
