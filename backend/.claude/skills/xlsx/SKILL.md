@@ -11,6 +11,31 @@ license: Proprietary. LICENSE.txt has complete terms
 ### Zero Formula Errors
 - Every Excel model MUST be delivered with ZERO formula errors (#REF!, #DIV/0!, #VALUE!, #N/A, #NAME?)
 
+### Formula Recalculation - CRITICAL TIMEOUT SETTINGS
+**When using recalc.py to recalculate formulas:**
+- ALWAYS specify a timeout of at least 120 seconds for files with formulas
+- Default timeout (30s) is too short and will cause failures
+- For very large files (>50 sheets or >500 formulas), recalculation may take 2-3 minutes
+
+**Correct usage:**
+```bash
+# Minimum timeout for most files
+python recalc.py output.xlsx 120
+
+# For very large files
+python recalc.py large_model.xlsx 180
+
+# Alternative: Skip recalc for very large files (Excel recalculates on open)
+# Only use this if file has >500 formulas
+# Excel will recalculate automatically when user opens it
+```
+
+**Common mistake to AVOID:**
+```bash
+# ❌ WRONG - Default 30s timeout will cause exit code 143 errors
+python recalc.py output.xlsx
+```
+
 ### Preserve Existing Templates (when updating templates)
 - Study and EXACTLY match existing format, style, and conventions when modifying files
 - Never impose standardized formatting on files with established patterns
