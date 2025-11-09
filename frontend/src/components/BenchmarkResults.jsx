@@ -147,13 +147,17 @@ function BenchmarkResults({ result }) {
           </div>
         </div>
 
-        {/* Sheets List */}
+        {/* Sheets List - Only for Excel files */}
         {loading ? (
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-            <FileSpreadsheet className="h-16 w-16 text-gray-300 mx-auto mb-3 animate-pulse" />
+            {isPdfFile ? (
+              <FileText className="h-16 w-16 text-gray-300 mx-auto mb-3 animate-pulse" />
+            ) : (
+              <FileSpreadsheet className="h-16 w-16 text-gray-300 mx-auto mb-3 animate-pulse" />
+            )}
             <p className="text-sm text-gray-600">Loading file details...</p>
           </div>
-        ) : fileMetadata?.sheets ? (
+        ) : !isPdfFile && fileMetadata?.sheets ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm mb-2">
               <h4 className="font-medium text-gray-700">
