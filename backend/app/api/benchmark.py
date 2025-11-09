@@ -126,42 +126,60 @@ async def execute_benchmark_task(task_id: str):
                 current_time = asyncio.get_event_loop().time()
                 update_type = update.get("type", "")
                 
-                if update_type == "status":
-                    # Send status updates
-                    message = update.get("message", "Processing...")
-                    last_progress = min(last_progress + 3, 90)
+                if update_type == "system":
+                    # System messages from Claude
+                    subtype = update.get("subtype", "")
+                    message = f"⚙️ System: {subtype}"
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     last_update_time = current_time
                     
-                elif update_type == "tool":
-                    # Tool usage
-                    tool_name = update.get("tool_name", "")
-                    tool_message = update.get("message", "")
-                    message = tool_message if tool_message else f"🛠️ Using {tool_name}..."
-                    last_progress = min(last_progress + 2, 90)
+                elif update_type == "user":
+                    # User message echo
+                    message = "👤 Query sent to Claude"
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     last_update_time = current_time
                     
-                elif update_type == "partial":
-                    # Partial content - send progress update
+                elif update_type == "assistant":
+                    # Claude's response
                     content = update.get("content", "")
-                    output_text += content
-                    # Send a brief content snippet as status
-                    if len(content) > 50:
-                        snippet = content[:50] + "..."
-                        last_progress = min(last_progress + 1, 90)
-                        yield f"data: {json.dumps({'status': f'💭 {snippet}', 'progress': last_progress})}\n\n"
+                    tool_uses = update.get("tool_uses", [])
+                    
+                    if content.strip():
+                        # Show Claude's thinking/response
+                        snippet = content[:100] + "..." if len(content) > 100 else content
+                        message = f"💬 Claude: {snippet}"
+                        last_progress = min(last_progress + 2, 85)
+                        yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                        output_text += content
                         last_update_time = current_time
                     
-                elif update_type == "file":
-                    # File created
-                    file_path = update.get("path", "")
-                    output_files.append(file_path)
-                    yield f"data: {json.dumps({'status': f'📄 Created {os.path.basename(file_path)}', 'progress': 85})}\n\n"
+                    if tool_uses:
+                        # Show tool usage
+                        for tool in tool_uses:
+                            tool_name = tool.get("name", "Unknown")
+                            message = f"🔧 Using tool: {tool_name}"
+                            last_progress = min(last_progress + 1, 85)
+                            yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                            last_update_time = current_time
+                    
+                elif update_type == "result":
+                    # Tool execution result
+                    message = "✅ Tool completed"
+                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    last_update_time = current_time
+                    
+                elif update_type == "error":
+                    # Error message
+                    error = update.get("error", "Unknown error")
+                    message = f"❌ Error: {error}"
+                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     last_update_time = current_time
                     
                 elif update_type == "complete":
                     # Execution complete
+                    message = "✨ Claude analysis complete"
+                    last_progress = 90
+                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     break
                     
                 # Heartbeat - send periodic updates even if no events
