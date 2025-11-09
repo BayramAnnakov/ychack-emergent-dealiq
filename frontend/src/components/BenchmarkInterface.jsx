@@ -273,7 +273,7 @@ function BenchmarkInterface({ onResultReady }) {
           )}
           
           <div className="bg-white rounded-lg shadow-2xl p-8 max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header with Cost & Tokens */}
+            {/* Header */}
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                 <Loader className="h-8 w-8 text-blue-600 animate-spin" />
@@ -284,24 +284,6 @@ function BenchmarkInterface({ onResultReady }) {
               <p className="text-gray-600 mb-3">
                 Claude Agent SDK is working on your professional report...
               </p>
-              
-              {/* Live Cost & Token Tracking */}
-              <div className="flex items-center justify-center space-x-6 text-sm">
-                <div className="flex items-center space-x-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
-                  <span className="text-green-600 font-semibold">💰</span>
-                  <span className="text-gray-700">Cost:</span>
-                  <span className="font-mono font-bold text-green-700">
-                    ${costUsd.toFixed(4)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
-                  <span className="text-purple-600 font-semibold">🔢</span>
-                  <span className="text-gray-700">Tokens:</span>
-                  <span className="font-mono font-bold text-purple-700">
-                    {tokensUsed.toLocaleString()}
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Execution Timeline */}
