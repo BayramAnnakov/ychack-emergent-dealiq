@@ -31,10 +31,12 @@ function App() {
 
   const handleQuerySubmit = async (queryResult) => {
     setInsights(queryResult.insights)
+    setCurrentAnalysisId(queryResult.analysis_id || null)
   }
   
   const handleSelectHistoricalAnalysis = (analysisData) => {
     setInsights(analysisData.insights)
+    setCurrentAnalysisId(analysisData.analysis_id || null)
     setCrmTab('analyze')  // Switch back to analyze tab to show results
   }
 
