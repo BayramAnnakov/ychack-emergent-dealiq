@@ -9,6 +9,9 @@ function BenchmarkResults({ result }) {
   const [fileMetadata, setFileMetadata] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(true)
+  const [validation, setValidation] = useState(null)
+  const [showValidationModal, setShowValidationModal] = useState(false)
+  const [validationLoading, setValidationLoading] = useState(true)
   
   // Extract taskId from result
   const taskId = result?.task_id || result?.taskId
