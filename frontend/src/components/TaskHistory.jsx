@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Clock, FileSpreadsheet, Download, Eye, Table, FileText } from 'lucide-react'
 import { getTaskHistory, downloadExcelResult } from '../services/benchmark'
 import ExcelPreview from './ExcelPreview'
+import PdfPreview from './PdfPreview'
 
 function TaskHistory() {
   const [history, setHistory] = useState([])
