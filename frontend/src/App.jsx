@@ -10,7 +10,7 @@ import BenchmarkResults from './components/BenchmarkResults'
 import TaskHistory from './components/TaskHistory'
 
 function App() {
-  const [mode, setMode] = useState('crm') // 'crm' or 'benchmark'
+  const [mode, setMode] = useState('benchmark') // Default to 'benchmark' (Professional Reports)
   const [uploadedFile, setUploadedFile] = useState(null)
   const [insights, setInsights] = useState(null)
   const [metrics, setMetrics] = useState(null)
