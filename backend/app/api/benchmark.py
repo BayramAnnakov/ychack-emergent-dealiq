@@ -663,16 +663,17 @@ async def get_task_result_metadata(task_id: str):
         
         return {
             "task_id": task_id,
-            "file_name": f"{task_id}_output.xlsx",
+            "file_name": file_name,
             "file_path": abs_file_path,
-            "file_size": os.path.getsize(file_path),
+            "file_size": file_size,
+            "file_type": "excel",
             "sheets": sheets_info,
             "sheet_count": len(sheets_info),
             "download_url": f"/api/v1/benchmark/download/{task_id}",
             "preview_url": f"/api/v1/benchmark/file/{task_id}"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading Excel file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
 
 
 @router.get("/file/{task_id}")
