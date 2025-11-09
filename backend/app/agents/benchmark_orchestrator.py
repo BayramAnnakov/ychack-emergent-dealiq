@@ -66,7 +66,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             print("✅ BenchmarkOrchestrator initialized")
             print(f"   max_turns: {self.options.max_turns}")
             print(f"   cwd: {backend_dir}")
-            print(f"   xlsx Skill: Available via Python/openpyxl (system prompt guidance)")
+            print(f"   xlsx Skill: {os.path.join(backend_dir, '.claude/skills/xlsx')}")
 
     async def execute_gpteval_task_streaming(
         self,
