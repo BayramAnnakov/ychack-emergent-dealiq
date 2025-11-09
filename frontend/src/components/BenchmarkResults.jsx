@@ -6,6 +6,7 @@ import ExcelPreview from './ExcelPreview'
 function BenchmarkResults({ result }) {
   const [fileMetadata, setFileMetadata] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showPreview, setShowPreview] = useState(true)
 
   useEffect(() => {
     if (result?.task_id || result?.taskId) {
