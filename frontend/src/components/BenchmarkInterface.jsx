@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { FileSpreadsheet, Play, CheckCircle, AlertCircle, Loader } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { FileSpreadsheet, Play, CheckCircle, AlertCircle, Loader, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { executeBenchmarkTask } from '../services/benchmark'
 
@@ -7,32 +7,42 @@ function BenchmarkInterface({ onResultReady }) {
   const [executing, setExecuting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState('')
+  const [tasks, setTasks] = useState([])
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [expandedTask, setExpandedTask] = useState(null)
 
-  // Sample GDPval task (you can load this from API later)
-  const task = {
-    id: '19403010-3e5c-494e-a6d3-13594e99f6af',
-    title: 'XR Retailer 2023 Makeup Sales Analysis',
-    description: 'Comprehensive sales performance analysis including YoY comparison, discontinued SKU risk assessment, volume drivers analysis, and strategic recommendations.',
-    category: 'Sales Analytics',
-    difficulty: 3,
-    estimatedTime: '45-60 seconds',
-    sections: [
-      'Overall Business Performance',
-      'Discontinued SKUs Risk Analysis',
-      'Top Volume Drivers',
-      'Volume Increases & Decreases',
-      'Strategic Recommendations'
-    ]
+  useEffect(() => {
+    loadTasks()
+  }, [])
+
+  const loadTasks = async () => {
+    try {
+      const response = await fetch('/api/v1/benchmark/tasks')
+      const data = await response.json()
+      setTasks(data.tasks || [])
+      if (data.tasks && data.tasks.length > 0) {
+        setSelectedTask(data.tasks[0])
+      }
+      setLoading(false)
+    } catch (error) {
+      console.error('Failed to load tasks:', error)
+      setLoading(false)
+    }
   }
 
   const handleExecute = async () => {
+    if (!selectedTask) {
+      toast.error('Please select a task')
+      return
+    }
+
     setExecuting(true)
     setProgress(0)
     setStatus('Initializing task execution...')
 
     try {
-      // Execute task with real API
-      await executeBenchmarkTask(task.id, {
+      await executeBenchmarkTask(selectedTask.task_id, {
         onProgress: (message, progressValue) => {
           setStatus(message)
           setProgress(progressValue)
@@ -42,12 +52,10 @@ function BenchmarkInterface({ onResultReady }) {
           setStatus('Complete!')
           toast.success('Excel report generated successfully!')
 
-          // Notify parent with result
           if (onResultReady) {
             onResultReady(result)
           }
 
-          // Reset after a delay
           setTimeout(() => {
             setExecuting(false)
             setProgress(0)
@@ -67,109 +75,129 @@ function BenchmarkInterface({ onResultReady }) {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="card text-center py-12">
+        <Loader className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
+        <p className="text-gray-600">Loading tasks...</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Task Card */}
+    <div className="space-y-4">
+      {/* Task Selector */}
       <div className="card">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
-              <FileSpreadsheet className="h-5 w-5 text-green-600" />
-              <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                {task.category}
-              </span>
-              <span className="text-xs text-gray-500">
-                {'⭐'.repeat(task.difficulty)}
-              </span>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{task.title}</h2>
-            <p className="text-sm text-gray-600 mb-4">{task.description}</p>
-          </div>
-        </div>
-
-        <div className="border-t pt-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Report Sections:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-            {task.sections.map((section, idx) => (
-              <div key={idx} className="flex items-center space-x-2 text-sm text-gray-600">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>{section}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div className="text-sm text-gray-500">
-              <span className="font-medium">Estimated time:</span> {task.estimatedTime}
-            </div>
-            <button
-              onClick={handleExecute}
-              disabled={executing}
-              className="btn btn-primary flex items-center space-x-2"
-            >
-              {executing ? (
-                <>
-                  <Loader className="h-4 w-4 animate-spin" />
-                  <span>Executing...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4" />
-                  <span>Execute Task</span>
-                </>
+        <h3 className="font-semibold text-gray-900 mb-3">Select Task</h3>
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {tasks.map((task) => (
+            <div key={task.task_id} className="border-2 rounded-lg overflow-hidden">
+              <button
+                onClick={() => {
+                  setSelectedTask(task)
+                  setExpandedTask(expandedTask === task.task_id ? null : task.task_id)
+                }}
+                className={`w-full p-3 text-left transition-colors ${
+                  selectedTask?.task_id === task.task_id
+                    ? 'bg-blue-50 border-blue-500'
+                    : 'bg-white hover:bg-gray-50 border-gray-200'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedTask?.task_id === task.task_id
+                          ? 'border-blue-600 bg-blue-600'
+                          : 'border-gray-300'
+                      }`}>
+                        {selectedTask?.task_id === task.task_id && (
+                          <CheckCircle className="h-3 w-3 text-white" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {task.sector || 'Sales Task'}
+                        </p>
+                        {task.has_reference_files && (
+                          <span className="text-xs text-blue-600">Has reference files</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {expandedTask === task.task_id ? (
+                    <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  )}
+                </div>
+              </button>
+              
+              {expandedTask === task.task_id && (
+                <div className="p-4 bg-gray-50 border-t border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Task Description:</h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-line mb-3">
+                    {task.full_prompt}
+                  </p>
+                  
+                  {task.reference_file_urls && task.reference_file_urls.length > 0 && (
+                    <div className="mt-3">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Reference Files:</h4>
+                      <div className="space-y-1">
+                        {task.reference_file_urls.map((url, idx) => {
+                          const fileName = url.split('/').pop()
+                          return (
+                            <a
+                              key={idx}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800"
+                            >
+                              <FileSpreadsheet className="h-4 w-4" />
+                              <span className="truncate">{fileName}</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
-            </button>
-          </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Execution Progress */}
-      {executing && (
-        <div className="card bg-blue-50 border-blue-200">
-          <div className="flex items-start space-x-3">
-            <Loader className="h-5 w-5 text-blue-600 animate-spin mt-0.5" />
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-blue-900 mb-1">Task Executing</h3>
-              <p className="text-sm text-blue-700 mb-3">{status}</p>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-xs text-blue-600">Progress</span>
-                <span className="text-xs font-semibold text-blue-700">{Math.round(progress)}%</span>
+      {/* Execute Button */}
+      <div className="card">
+        {!executing ? (
+          <button
+            onClick={handleExecute}
+            disabled={!selectedTask}
+            className="btn btn-primary w-full flex items-center justify-center space-x-2 text-lg py-4"
+          >
+            <Play className="h-5 w-5" />
+            <span>Execute Selected Task</span>
+          </button>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Loader className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">{status}</p>
+                <div className="mt-2 bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{progress}% complete</p>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Info Panel */}
-      <div className="card bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-        <div className="flex items-start space-x-3">
-          <div className="bg-green-100 p-2 rounded-lg">
-            <AlertCircle className="h-5 w-5 text-green-700" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">GDPval Benchmark Integration</h3>
-            <p className="text-sm text-gray-600 mb-2">
-              This task is from OpenAI's GDPval benchmark - the gold standard for evaluating AI performance on real-world sales analytics.
-            </p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 bg-white rounded-md text-gray-700 border border-gray-200">
-                ✓ 100% Formula-based
-              </span>
-              <span className="px-2 py-1 bg-white rounded-md text-gray-700 border border-gray-200">
-                ✓ Validated Output
-              </span>
-              <span className="px-2 py-1 bg-white rounded-md text-gray-700 border border-gray-200">
-                ✓ Executive-Ready
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
