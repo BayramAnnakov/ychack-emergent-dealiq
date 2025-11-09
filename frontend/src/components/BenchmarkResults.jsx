@@ -179,13 +179,20 @@ function BenchmarkResults({ result }) {
         )}
       </div>
 
-      {/* Excel Preview */}
+      {/* File Preview */}
       {showPreview && fileMetadata && (
         <div className="mt-6">
-          <ExcelPreview 
-            taskId={taskId} 
-            fileName={fileMetadata.file_name}
-          />
+          {result.file_name?.endsWith('.pdf') ? (
+            <PdfPreview 
+              taskId={taskId} 
+              fileName={fileMetadata.file_name || result.file_name}
+            />
+          ) : (
+            <ExcelPreview 
+              taskId={taskId} 
+              fileName={fileMetadata.file_name}
+            />
+          )}
         </div>
       )}
 
