@@ -37,6 +37,7 @@ When analyzing data, look for patterns, anomalies, trends, and opportunities."""
             max_turns=15,  # Increased to allow more comprehensive analysis
             permission_mode="default",  # Provides complete analysis with non-root appuser
             allowed_tools=self.custom_tools if self.custom_tools else [],
+            cli_path="/home/appuser/node_modules/.bin/claude",  # Path to claude CLI for appuser
             # continue_conversation=True,  # REMOVED - causes hanging issues
         )
 
