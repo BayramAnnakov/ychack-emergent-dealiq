@@ -262,8 +262,8 @@ async def execute_benchmark_task(task_id: str):
             # Execute the task with streaming - properly parse Claude message types
             async for update in orchestrator.execute_gpteval_task_streaming(
                 task_description=task_description,
-                reference_file_paths=[reference_file],
-                output_filename=f"{task_id}_output.xlsx"
+                reference_file_paths=reference_file_paths,
+                output_filename=f"{task_id}_output.xlsx"  # Will be .pdf if task requests PDF
             ):
                 update_type = update.get("type", "")
                 
