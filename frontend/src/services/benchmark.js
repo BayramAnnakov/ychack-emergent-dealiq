@@ -90,6 +90,29 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
 }
 
 /**
+ * Get task result metadata
+ * @param {string} taskId - The task ID
+ * @returns {Promise<object>} Result metadata including sheets info
+ */
+export async function getTaskResult(taskId) {
+  const response = await fetch(`${API_BASE_URL}/benchmark/result/${taskId}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch task result')
+  }
+  return await response.json()
+}
+
+/**
+ * Download the Excel result file
+ * @param {string} taskId - The task ID
+ * @returns {string} Download URL
+ */
+export function getDownloadUrl(taskId) {
+  const url = `${API_BASE_URL}/benchmark/download/${taskId}`
+  return url
+}
+
+/**
  * Download Excel result file
  * @param {string} taskId - The task ID
  */
