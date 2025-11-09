@@ -320,15 +320,8 @@ async def execute_benchmark_task(task_id: str):
             output_text = ""
             output_files = []
             last_progress = 15
-            total_cost = 0.0
-            tokens_used = 0
             active_skills = set()
             timeline_phases = []
-            turn_count = 0  # Track API calls for cost estimation
-            
-            # Cost estimation (rough): ~$0.02 per turn for Sonnet
-            COST_PER_TURN = 0.02
-            TOKENS_PER_TURN = 2000  # Rough estimate
             
             # Execute the task with streaming - properly parse Claude message types
             async for update in orchestrator.execute_gpteval_task_streaming(
