@@ -95,49 +95,27 @@ async def execute_benchmark_task(task_id: str):
             output_text = ""
             output_files = []
             last_progress = 15
-            last_update_time = asyncio.get_event_loop().time()
-            heartbeat_interval = 3  # Send update every 3 seconds
             
-            # Progress messages for different stages
-            progress_messages = [
-                (20, "📖 Claude is reading the Excel file..."),
-                (25, "🔍 Analyzing sales patterns..."),
-                (30, "📊 Calculating YoY metrics..."),
-                (35, "🎯 Identifying top volume drivers..."),
-                (40, "⚠️ Assessing discontinued SKUs..."),
-                (45, "📈 Computing growth rates..."),
-                (50, "🧮 Generating Excel formulas..."),
-                (55, "💡 Developing strategic insights..."),
-                (60, "📝 Creating recommendations..."),
-                (65, "🎨 Formatting Excel sheets..."),
-                (70, "✏️ Adding section headers..."),
-                (75, "🔢 Finalizing calculations..."),
-                (80, "✅ Validating output quality..."),
-                (85, "📦 Packaging results..."),
-            ]
-            message_index = 0
-            
-            # Execute the task with streaming
+            # Execute the task with streaming - just pass through Claude's messages
             async for update in orchestrator.execute_gpteval_task_streaming(
                 task_description=task_description,
                 reference_file_paths=[reference_file],
                 output_filename=f"{task_id}_output.xlsx"
             ):
-                current_time = asyncio.get_event_loop().time()
                 update_type = update.get("type", "")
                 
                 if update_type == "system":
                     # System messages from Claude
                     subtype = update.get("subtype", "")
                     message = f"⚙️ System: {subtype}"
+                    last_progress = min(last_progress + 1, 85)
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
-                    last_update_time = current_time
                     
                 elif update_type == "user":
                     # User message echo
                     message = "👤 Query sent to Claude"
+                    last_progress = min(last_progress + 2, 85)
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
-                    last_update_time = current_time
                     
                 elif update_type == "assistant":
                     # Claude's response
@@ -146,34 +124,49 @@ async def execute_benchmark_task(task_id: str):
                     
                     if content.strip():
                         # Show Claude's thinking/response
-                        snippet = content[:100] + "..." if len(content) > 100 else content
+                        snippet = content[:150] + "..." if len(content) > 150 else content
                         message = f"💬 Claude: {snippet}"
                         last_progress = min(last_progress + 2, 85)
                         yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                         output_text += content
-                        last_update_time = current_time
                     
                     if tool_uses:
                         # Show tool usage
                         for tool in tool_uses:
                             tool_name = tool.get("name", "Unknown")
-                            message = f"🔧 Using tool: {tool_name}"
+                            tool_input = tool.get("input", {})
+                            # Show what the tool is doing
+                            if tool_name == "Read":
+                                file_path = tool_input.get("path", "")
+                                message = f"🔧 Reading: {os.path.basename(file_path) if file_path else 'file'}"
+                            elif tool_name == "Write":
+                                file_path = tool_input.get("path", "")
+                                message = f"✍️ Writing: {os.path.basename(file_path) if file_path else 'file'}"
+                            elif tool_name == "Bash":
+                                cmd = str(tool_input.get("command", ""))[:50]
+                                message = f"⚡ Running: {cmd}..."
+                            else:
+                                message = f"🔧 Using: {tool_name}"
+                            
                             last_progress = min(last_progress + 1, 85)
                             yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
-                            last_update_time = current_time
                     
                 elif update_type == "result":
                     # Tool execution result
-                    message = "✅ Tool completed"
+                    result_content = update.get("content", "")
+                    # Show brief result preview
+                    if result_content:
+                        preview = str(result_content)[:80] + "..." if len(str(result_content)) > 80 else str(result_content)
+                        message = f"✅ Result: {preview}"
+                    else:
+                        message = "✅ Tool completed"
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
-                    last_update_time = current_time
                     
                 elif update_type == "error":
                     # Error message
                     error = update.get("error", "Unknown error")
                     message = f"❌ Error: {error}"
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
-                    last_update_time = current_time
                     
                 elif update_type == "complete":
                     # Execution complete
@@ -181,22 +174,9 @@ async def execute_benchmark_task(task_id: str):
                     last_progress = 90
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     break
-                    
-                # Heartbeat - send periodic updates even if no events
-                if current_time - last_update_time > heartbeat_interval:
-                    if message_index < len(progress_messages):
-                        prog, msg = progress_messages[message_index]
-                        last_progress = max(last_progress, prog)
-                        yield f"data: {json.dumps({'status': msg, 'progress': last_progress})}\n\n"
-                        message_index += 1
-                        last_update_time = current_time
-                    else:
-                        # Generic heartbeat
-                        yield f"data: {json.dumps({'status': '⏳ Claude is working...', 'progress': last_progress})}\n\n"
-                        last_update_time = current_time
                 
                 # Small delay to prevent overwhelming the client
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.05)
             
             # Final status
             yield f"data: {json.dumps({'status': '🎉 Analysis complete!', 'progress': 95})}\n\n"
