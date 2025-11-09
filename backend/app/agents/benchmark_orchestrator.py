@@ -50,7 +50,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             print(f"📂 Backend dir: {backend_dir}")
             print(f"🔧 Skills dir: {os.path.join(backend_dir, '.claude/skills/xlsx')}")
 
-        # Configure options WITH xlsx Skill properly enabled
+        # Configure options WITH xlsx and pdf Skills properly enabled
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             model="sonnet",  # Use latest Sonnet for best performance
@@ -59,7 +59,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             cwd=backend_dir,
             cli_path="/home/appuser/node_modules/.bin/claude",  # Path to claude CLI for appuser
             setting_sources=["user", "project"],
-            allowed_tools=["Skill", "Read", "Write", "Bash"]  # xlsx Skill now available
+            allowed_tools=["Skill", "Read", "Write", "Bash"]  # xlsx and pdf Skills now available
         )
 
         if self.verbose:
@@ -67,6 +67,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             print(f"   max_turns: {self.options.max_turns}")
             print(f"   cwd: {backend_dir}")
             print(f"   xlsx Skill: {os.path.join(backend_dir, '.claude/skills/xlsx')}")
+            print(f"   pdf Skill: {os.path.join(backend_dir, '.claude/skills/pdf')}")
 
     async def execute_gpteval_task_streaming(
         self,
