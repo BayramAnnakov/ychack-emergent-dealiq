@@ -558,14 +558,15 @@ async def execute_benchmark_task(task_id: str):
                         message = "✨ Claude analysis complete"
                     
                     last_progress = 90
-                    yield f"data: {json.dumps({
+                    complete_data = {
                         'status': message, 
                         'progress': last_progress,
                         'cost_usd': total_cost,
                         'tokens': tokens_used,
                         'duration_ms': duration_ms,
                         'num_turns': num_turns
-                    })}\n\n"
+                    }
+                    yield f"data: {json.dumps(complete_data)}\n\n"
                     break
                 
                 # Small delay to prevent overwhelming the client
