@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Activity, ChevronDown, ChevronUp, BarChart3, Sparkles } from 'lucide-react'
+import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Activity, ChevronDown, ChevronUp, BarChart3, Sparkles, Zap } from 'lucide-react'
+import ActionableInsights from './ActionableInsights'
 import ExecutiveSummary from './ExecutiveSummary'
 import InsightsCharts from './InsightsCharts'
 import LoadingSkeleton from './LoadingSkeleton'
 
 function InsightsDashboard({ insights, isLoading }) {
   const [expandedInsights, setExpandedInsights] = useState({})
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('insights') // Default to insights-first
 
   if (isLoading) {
     return <LoadingSkeleton />
@@ -82,16 +83,13 @@ function InsightsDashboard({ insights, isLoading }) {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Sparkles },
-    { id: 'charts', label: 'Visualizations', icon: BarChart3 },
-    { id: 'insights', label: 'All Insights', icon: Lightbulb }
+    { id: 'insights', label: 'AI Insights', icon: Zap },
+    { id: 'metrics', label: 'Metrics & Charts', icon: BarChart3 },
+    { id: 'all', label: 'Full Analysis', icon: Lightbulb }
   ]
 
   return (
     <div className="space-y-6">
-      {/* Executive Summary - Always visible */}
-      <ExecutiveSummary insights={insights} />
-
       {/* Tabbed Navigation */}
       <div className="card">
         <div className="border-b border-gray-200 mb-6">
@@ -120,47 +118,18 @@ function InsightsDashboard({ insights, isLoading }) {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'overview' && (
+        {activeTab === 'insights' && (
+          <ActionableInsights insights={insights} />
+        )}
+
+        {activeTab === 'metrics' && (
           <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Insights</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {insights.slice(0, 4).map((insight, index) => {
-                  const Icon = getInsightIcon(insight.type)
-                  return (
-                    <div
-                      key={index}
-                      className="bg-gradient-to-br from-primary-50 to-white rounded-xl p-4 border border-primary-200 hover:shadow-md transition-all hover:scale-105 animate-scale-in"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="bg-primary-100 p-2 rounded-lg">
-                          <Icon className="h-5 w-5 text-primary-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm mb-1">
-                            {stripMarkdown(insight.title || 'Insight')}
-                          </h4>
-                          <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed">
-                            {stripMarkdown(insight.description || insight.full_content || '').substring(0, 150)}
-                            {(insight.description || insight.full_content || '').length > 150 ? '...' : ''}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            <ExecutiveSummary insights={insights} />
             <InsightsCharts insights={insights} />
           </div>
         )}
 
-        {activeTab === 'charts' && (
-          <InsightsCharts insights={insights} />
-        )}
-
-        {activeTab === 'insights' && (
+        {activeTab === 'all' && (
           <div className="space-y-4">
           {insights.slice(0, 10).map((insight, index) => {
             const Icon = getInsightIcon(insight.type)
