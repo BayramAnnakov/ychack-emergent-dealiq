@@ -117,13 +117,25 @@ function ReferenceFilePreview({ fileUrl, fileName }) {
           <FileSpreadsheet className="h-5 w-5 text-blue-600" />
           <span className="font-medium text-gray-900">{fileName || 'Reference File'}</span>
         </div>
-        <button
-          onClick={handleDownload}
-          className="btn btn-sm btn-primary flex items-center space-x-1"
-        >
-          <Download className="h-4 w-4" />
-          <span>Download</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleDownload}
+            className="btn btn-sm btn-secondary flex items-center space-x-1"
+          >
+            <Download className="h-4 w-4" />
+            <span>Download</span>
+          </button>
+          <a
+            href={getGoogleSheetsImportUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-sm btn-primary flex items-center space-x-1"
+            title="Import into Google Sheets"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span>Open in Sheets</span>
+          </a>
+        </div>
       </div>
 
       {/* Sheet tabs */}
