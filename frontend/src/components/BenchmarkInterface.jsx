@@ -12,7 +12,17 @@ function BenchmarkInterface({ onResultReady }) {
   const [selectedTask, setSelectedTask] = useState(null)
   const [loading, setLoading] = useState(true)
   const [expandedTask, setExpandedTask] = useState(null)
-  const [progressLog, setProgressLog] = useState([]) // Track all progress messages
+  const [progressLog, setProgressLog] = useState([])
+  const [costUsd, setCostUsd] = useState(0)
+  const [tokensUsed, setTokensUsed] = useState(0)
+  const [activeSkills, setActiveSkills] = useState([])
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [executionPhases, setExecutionPhases] = useState([
+    { name: 'Initialize', status: 'pending', icon: '🚀' },
+    { name: 'Analyze', status: 'pending', icon: '🔍' },
+    { name: 'Generate', status: 'pending', icon: '✍️' },
+    { name: 'Validate', status: 'pending', icon: '✅' }
+  ]) // Track all progress messages
 
   useEffect(() => {
     loadTasks()
