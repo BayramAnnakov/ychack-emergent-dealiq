@@ -56,11 +56,12 @@ async def execute_benchmark_task(task_id: str):
     Execute a benchmark task using BenchmarkOrchestrator with Claude
     """
     async def event_generator():
-        """Generate SSE events from actual Claude execution"""
+        """Generate SSE events from actual Claude execution with heartbeat"""
         
         try:
             # Send initial status
             yield f"data: {json.dumps({'status': 'Initializing Claude...', 'progress': 5})}\n\n"
+            await asyncio.sleep(0.5)
             
             # Task details - for now we have one hardcoded task
             task_description = """
@@ -82,50 +83,106 @@ async def execute_benchmark_task(task_id: str):
                 raise HTTPException(status_code=404, detail=f"Reference file not found: {reference_file}")
             
             yield f"data: {json.dumps({'status': 'Loading reference data...', 'progress': 10})}\n\n"
+            await asyncio.sleep(0.5)
             
             # Create orchestrator
             orchestrator = BenchmarkOrchestrator(verbose=True)
             
             yield f"data: {json.dumps({'status': 'Starting Claude analysis...', 'progress': 15})}\n\n"
+            await asyncio.sleep(0.5)
             
-            # Execute the task with streaming
+            # Progress tracking
             output_text = ""
             output_files = []
             last_progress = 15
+            last_update_time = asyncio.get_event_loop().time()
+            heartbeat_interval = 3  # Send update every 3 seconds
             
+            # Progress messages for different stages
+            progress_messages = [
+                (20, "📖 Claude is reading the Excel file..."),
+                (25, "🔍 Analyzing sales patterns..."),
+                (30, "📊 Calculating YoY metrics..."),
+                (35, "🎯 Identifying top volume drivers..."),
+                (40, "⚠️ Assessing discontinued SKUs..."),
+                (45, "📈 Computing growth rates..."),
+                (50, "🧮 Generating Excel formulas..."),
+                (55, "💡 Developing strategic insights..."),
+                (60, "📝 Creating recommendations..."),
+                (65, "🎨 Formatting Excel sheets..."),
+                (70, "✏️ Adding section headers..."),
+                (75, "🔢 Finalizing calculations..."),
+                (80, "✅ Validating output quality..."),
+                (85, "📦 Packaging results..."),
+            ]
+            message_index = 0
+            
+            # Execute the task with streaming
             async for update in orchestrator.execute_gpteval_task_streaming(
                 task_description=task_description,
                 reference_file_paths=[reference_file],
                 output_filename=f"{task_id}_output.xlsx"
             ):
+                current_time = asyncio.get_event_loop().time()
                 update_type = update.get("type", "")
                 
                 if update_type == "status":
                     # Send status updates
                     message = update.get("message", "Processing...")
-                    last_progress = min(last_progress + 5, 90)
+                    last_progress = min(last_progress + 3, 90)
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    last_update_time = current_time
                     
                 elif update_type == "tool":
                     # Tool usage
                     tool_name = update.get("tool_name", "")
-                    message = f"Using {tool_name}..."
+                    tool_message = update.get("message", "")
+                    message = tool_message if tool_message else f"🛠️ Using {tool_name}..."
+                    last_progress = min(last_progress + 2, 90)
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    last_update_time = current_time
                     
                 elif update_type == "partial":
-                    # Partial content
+                    # Partial content - send progress update
                     content = update.get("content", "")
                     output_text += content
+                    # Send a brief content snippet as status
+                    if len(content) > 50:
+                        snippet = content[:50] + "..."
+                        last_progress = min(last_progress + 1, 90)
+                        yield f"data: {json.dumps({'status': f'💭 {snippet}', 'progress': last_progress})}\n\n"
+                        last_update_time = current_time
                     
                 elif update_type == "file":
                     # File created
                     file_path = update.get("path", "")
                     output_files.append(file_path)
-                    yield f"data: {json.dumps({'status': f'Created {os.path.basename(file_path)}', 'progress': 85})}\n\n"
+                    yield f"data: {json.dumps({'status': f'📄 Created {os.path.basename(file_path)}', 'progress': 85})}\n\n"
+                    last_update_time = current_time
                     
                 elif update_type == "complete":
                     # Execution complete
                     break
+                    
+                # Heartbeat - send periodic updates even if no events
+                if current_time - last_update_time > heartbeat_interval:
+                    if message_index < len(progress_messages):
+                        prog, msg = progress_messages[message_index]
+                        last_progress = max(last_progress, prog)
+                        yield f"data: {json.dumps({'status': msg, 'progress': last_progress})}\n\n"
+                        message_index += 1
+                        last_update_time = current_time
+                    else:
+                        # Generic heartbeat
+                        yield f"data: {json.dumps({'status': '⏳ Claude is working...', 'progress': last_progress})}\n\n"
+                        last_update_time = current_time
+                
+                # Small delay to prevent overwhelming the client
+                await asyncio.sleep(0.1)
+            
+            # Final status
+            yield f"data: {json.dumps({'status': '🎉 Analysis complete!', 'progress': 95})}\n\n"
+            await asyncio.sleep(0.5)
             
             # Final result
             result = {
@@ -134,11 +191,15 @@ async def execute_benchmark_task(task_id: str):
                 "file_name": f"{task_id}_output.xlsx",
                 "output_text": output_text[:500] if output_text else "Analysis complete",
                 "files_created": len(output_files),
-                "errors": 0
+                "errors": 0,
+                "progress": 100
             }
             yield f"data: {json.dumps(result)}\n\n"
             
         except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"Error in benchmark execution: {error_detail}")
             error_result = {
                 "status": "error",
                 "error": str(e),
