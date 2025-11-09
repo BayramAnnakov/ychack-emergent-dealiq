@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Download, CheckCircle, FileSpreadsheet, ExternalLink, Award, Table, Eye } from 'lucide-react'
+import { Download, CheckCircle, FileSpreadsheet, FileText, ExternalLink, Award, Table, Eye } from 'lucide-react'
 import { downloadExcelResult, getTaskResult, getDownloadUrl } from '../services/benchmark'
 import ExcelPreview from './ExcelPreview'
+import PdfPreview from './PdfPreview'
 
 function BenchmarkResults({ result }) {
   const [fileMetadata, setFileMetadata] = useState(null)
