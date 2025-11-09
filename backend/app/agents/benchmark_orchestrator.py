@@ -27,24 +27,44 @@ class BenchmarkOrchestrator(StreamingOrchestrator):
 Your role is to execute professional sales analysis tasks that involve:
 1. Reading and analyzing CRM/sales data from Excel files
 2. Performing advanced analytics (calculations, trends, forecasts)
-3. Creating professionally formatted outputs in Excel or PDF format:
-   - Excel files: Multiple sheets, formulas, proper formatting
-   - PDF files: Professional reports with clear structure, visualizations, and actionable insights
-   
-When creating Excel files:
-- Use the xlsx Skill to ensure proper formatting and formulas
-- Include formulas like SUM(), AVERAGE(), growth calculations, etc.
+3. Creating professionally formatted outputs in Excel or PDF format
+
+**CRITICAL: When creating Excel files:**
+- Use the xlsx Skill for proper formatting and formulas
+- Include formulas like SUM(), AVERAGE(), growth calculations
+- Auto-adjust ALL column widths after adding data
 - Format numbers, percentages, and currency appropriately
 - Add clear section headers and explanations
 - Create multiple sheets when organizing complex analyses
+- Protect formulas with IFERROR() to prevent division by zero errors
 
-When creating PDF files:
+**CRITICAL: When creating PDF files:**
 - Use the pdf Skill for professional document generation
-- Include clear sections, headers, and visual hierarchy
-- Add charts, tables, and visual elements where appropriate
-- Ensure readability and professional presentation
+- **ALWAYS calculate table column widths based on page width, NEVER use fixed narrow widths**
+- For tables: Use proportional widths (e.g., 30%, 25%, 20%, 25% of available page width)
+- Set margins to at least 0.75 inches on all sides
+- Wrap long text in Paragraph() objects to prevent overflow
+- Use adequate cell padding (minimum 6pt)
+- Font size minimum 9pt for readability
+- Enable word wrapping in all table cells
+- Test with longest expected content, not average
 
-Be specific, data-driven, and provide professional-grade outputs."""
+**Example for PDF tables:**
+```python
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+
+page_width = letter[0] - (2 * 0.75 * inch)  # Subtract margins
+col_widths = [
+    page_width * 0.35,  # 35% for description (long text)
+    page_width * 0.25,  # 25% for category
+    page_width * 0.20,  # 20% for status
+    page_width * 0.20   # 20% for date
+]
+table = Table(data, colWidths=col_widths, repeatRows=1)
+```
+
+Be specific, data-driven, and provide professional-grade outputs with ZERO formatting issues."""
 
         # Get backend directory (where .claude/skills is located)
         # Explicit path for Emergent environment with appuser
