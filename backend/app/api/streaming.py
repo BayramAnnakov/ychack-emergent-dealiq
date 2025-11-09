@@ -253,7 +253,8 @@ async def stream_analysis(file_id: str, query: str, analysis_type: str = "genera
                     "processing_time": update.get("duration_ms", 0) / 1000,
                     "cost_usd": update.get("cost_usd", 0),
                     "markdown": complete_markdown,
-                    "progress": 100
+                    "progress": 100,
+                    "analysis_id": None  # Will be set after saving
                 }
                 
                 # Save analysis to history
@@ -281,6 +282,7 @@ async def stream_analysis(file_id: str, query: str, analysis_type: str = "genera
                     with open(history_file, 'w') as f:
                         json.dump(history_data, f, indent=2)
                     
+                    result["analysis_id"] = analysis_id  # Add to result
                     logger.info(f"Saved analysis to history: {analysis_id}")
                 except Exception as e:
                     logger.error(f"Failed to save analysis history: {e}")
