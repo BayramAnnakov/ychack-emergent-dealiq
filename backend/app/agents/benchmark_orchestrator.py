@@ -50,9 +50,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             print(f"📂 Backend dir: {backend_dir}")
             print(f"🔧 Skills dir: {os.path.join(backend_dir, '.claude/skills/xlsx')}")
 
-        # Configure options WITHOUT Skills tool (SDK bug causes hanging)
-        # Instead, xlsx Skill guidance is in system_prompt and Claude uses it via Python/openpyxl
-        # NOTE: xlsx Skill exists at backend/.claude/skills/xlsx/SKILL.md for reference
+        # Configure options WITH xlsx Skill properly enabled
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             model="sonnet",  # Use latest Sonnet for best performance
@@ -61,8 +59,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             cwd=backend_dir,
             cli_path="/home/appuser/node_modules/.bin/claude",  # Path to claude CLI for appuser
             setting_sources=["user", "project"],
-            allowed_tools=["Skill", "Read", "Write", "Bash"]
-            # NOT including setting_sources or Skill in allowed_tools due to SDK hanging bug
+            allowed_tools=["Skill", "Read", "Write", "Bash"]  # xlsx Skill now available
         )
 
         if self.verbose:
