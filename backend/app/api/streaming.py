@@ -191,16 +191,54 @@ async def stream_analysis(file_id: str, query: str, analysis_type: str = "genera
                 content = update.get("content", "")
                 complete_markdown += content
 
-                # Send partial content
+                # Send partial content with better status messages
                 if content.strip():
-                    progress = min(progress + 10, 90)
-                    yield f"data: {json.dumps({'type': 'partial', 'content': content, 'progress': progress})}\n\n"
+                    # Determine what phase we're in based on content
+                    if not complete_markdown or len(complete_markdown) < 100:
+                        status_msg = "🤖 Claude is analyzing your data..."
+                        progress = 30
+                    elif len(complete_markdown) < 1000:
+                        status_msg = "📊 Calculating metrics and statistics..."
+                        progress = 50
+                    elif len(complete_markdown) < 3000:
+                        status_msg = "💡 Generating insights and recommendations..."
+                        progress = 70
+                    else:
+                        status_msg = "✨ Finalizing comprehensive analysis..."
+                        progress = 85
+
+                    yield f"data: {json.dumps({'type': 'partial', 'content': content, 'progress': progress, 'message': status_msg})}\n\n"
 
                 # Send tool usage updates
                 tool_uses = update.get("tool_uses", [])
                 for tool in tool_uses:
                     tool_name = tool.get("name", "Unknown")
-                    yield f"data: {json.dumps({'type': 'tool', 'tool_name': tool_name, 'message': f'Using {tool_name}...'})}\n\n"
+                    tool_input = tool.get("input", {})
+
+                    # Create more descriptive message based on tool type
+                    if tool_name == "Read":
+                        file_path = tool_input.get("file_path", "")
+                        filename = file_path.split('/')[-1] if file_path else "file"
+                        message = f"📖 Reading CRM data from {filename}"
+                        progress = 25
+                    elif tool_name == "Grep":
+                        pattern = tool_input.get("pattern", "")[:30]
+                        message = f"🔍 Searching for: {pattern}"
+                        progress = min(progress + 5, 85)
+                    elif tool_name == "Bash":
+                        command = tool_input.get("command", "")[:40]
+                        message = f"⚙️  Running: {command}..."
+                        progress = min(progress + 5, 85)
+                    elif tool_name == "Glob":
+                        pattern = tool_input.get("pattern", "")
+                        message = f"📁 Finding files: {pattern}"
+                        progress = min(progress + 5, 85)
+                    else:
+                        message = f"🔧 Using {tool_name}"
+                        progress = min(progress + 5, 85)
+
+                    yield f"data: {json.dumps({'type': 'tool', 'tool_name': tool_name, 'message': message, 'progress': progress})}\n\n"
+                    logger.info(f"Tool usage sent to client: {message}")
 
             elif update["type"] == "result":
                 # Parse markdown into structured insights

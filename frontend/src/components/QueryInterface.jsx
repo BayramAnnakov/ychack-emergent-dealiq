@@ -36,11 +36,13 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
             setStreamingProgress(data.progress || 0)
           },
           onPartial: (data) => {
-            setStreamingStatus('Analyzing...')
+            // Use the message from the backend if available
+            setStreamingStatus(data.message || 'Analyzing...')
             setStreamingProgress(data.progress || 50)
           },
           onTool: (data) => {
             setStreamingStatus(data.message)
+            setStreamingProgress(data.progress || streamingProgress)
           },
           onComplete: (data) => {
             onQueryResult(data)

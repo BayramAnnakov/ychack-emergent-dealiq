@@ -44,14 +44,22 @@ Be specific, data-driven, and provide clear recommendations.
 Format your responses with clear sections and bullet points."""
 
         # Create options without subagents
-        # Set cwd to project root (backend/..)
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+        # Set cwd to backend directory (where data/uploads is located)
+        # From: backend/app/agents/orchestrator_streaming.py
+        # Go up: ../../ to reach backend/
+        backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+
+        # Verify path
+        if self.verbose:
+            print(f"Backend dir set to: {backend_dir}")
+            print(f"Upload dir will be: {os.path.join(backend_dir, 'data/uploads')}")
+
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
             max_turns=5,
             permission_mode="bypassPermissions",  # Use valid permission mode
-            cwd=project_root  # Set to project root for file access
+            cwd=backend_dir  # Set to backend dir where data/uploads is
             # continue_conversation=True
         )
 
