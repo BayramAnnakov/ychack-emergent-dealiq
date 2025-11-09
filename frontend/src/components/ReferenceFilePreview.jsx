@@ -61,6 +61,14 @@ function ReferenceFilePreview({ fileUrl, fileName }) {
     document.body.removeChild(link)
   }
 
+  const getGoogleSheetsImportUrl = () => {
+    // Use the proxy URL which should be accessible by Google Sheets
+    // Google Sheets import URL format
+    const baseUrl = window.location.origin
+    const fullProxyUrl = fileUrl.startsWith('http') ? fileUrl : `${baseUrl}${fileUrl}`
+    return `https://docs.google.com/spreadsheets/d/new/import?url=${encodeURIComponent(fullProxyUrl)}`
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
