@@ -84,8 +84,15 @@ function BenchmarkResults({ result }) {
           <div className="flex items-center space-x-3">
             <FileSpreadsheet className="h-6 w-6 text-green-600" />
             <div>
-              <h3 className="font-semibold text-gray-900">XR Retailer 2023 Analysis Report</h3>
-              <p className="text-sm text-gray-500">{result.fileName}</p>
+              <h3 className="font-semibold text-gray-900">Excel Report Generated</h3>
+              <p className="text-sm text-gray-500">
+                {fileMetadata?.file_name || result.file_name || result.fileName || 'output.xlsx'}
+                {fileMetadata?.file_size && (
+                  <span className="ml-2 text-gray-400">
+                    ({(fileMetadata.file_size / 1024).toFixed(1)} KB)
+                  </span>
+                )}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -95,19 +102,71 @@ function BenchmarkResults({ result }) {
           </div>
         </div>
 
-        {/* Excel Preview Placeholder */}
-        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-          <FileSpreadsheet className="h-16 w-16 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-600 mb-4">
-            Professional Excel report with dynamic formulas, professional formatting, and comprehensive insights
-          </p>
-          <div className="flex justify-center space-x-3">
+        {/* Sheets List */}
+        {loading ? (
+          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+            <FileSpreadsheet className="h-16 w-16 text-gray-300 mx-auto mb-3 animate-pulse" />
+            <p className="text-sm text-gray-600">Loading file details...</p>
+          </div>
+        ) : fileMetadata?.sheets ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <h4 className="font-medium text-gray-700">
+                📊 {fileMetadata.sheet_count} Worksheets
+              </h4>
+              <a
+                href={getDownloadUrl(taskId)}
+                download
+                className="btn btn-sm btn-primary flex items-center space-x-1"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download Excel</span>
+              </a>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {fileMetadata.sheets.map((sheet, idx) => (
+                <div
+                  key={idx}
+                  className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3"
+                >
+                  <div className="flex items-start space-x-2">
+                    <Table className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-semibold text-gray-900 text-sm truncate">
+                        {sheet.name}
+                      </h5>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {sheet.rows} rows × {sheet.columns} columns
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+              <p className="text-sm text-blue-800 flex items-center">
+                <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>
+                  <strong>Formula-driven analysis:</strong> All calculations use Excel formulas, not hardcoded values. 
+                  Download to see formulas and modify as needed.
+                </span>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+            <FileSpreadsheet className="h-16 w-16 text-gray-300 mx-auto mb-3" />
+            <p className="text-sm text-gray-600 mb-4">
+              Professional Excel report with dynamic formulas
+            </p>
             <button onClick={handleDownload} className="btn btn-secondary btn-sm">
               <Download className="h-4 w-4 mr-2" />
               Download to View
             </button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Analysis Summary */}
