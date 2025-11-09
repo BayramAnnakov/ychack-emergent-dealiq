@@ -59,7 +59,8 @@ Format your responses with clear sections and bullet points."""
             model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
             max_turns=15,  # Increased for comprehensive analysis
             permission_mode="default",  # Works with non-root user (appuser)
-            cwd=backend_dir  # Set to backend dir where data/uploads is
+            cwd=backend_dir,  # Set to backend dir where data/uploads is
+            cli_path="/home/appuser/node_modules/.bin/claude"  # Path to claude CLI for appuser
             # continue_conversation=True
         )
 
