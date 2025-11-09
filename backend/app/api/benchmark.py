@@ -509,31 +509,59 @@ async def get_excel_file(task_id: str):
 
 @router.get("/download/{task_id}")
 async def download_excel_result(task_id: str):
-    """Download the generated Excel file for a task"""
+    """Download the generated Excel or PDF file for a task"""
 
-    # Look for the file in outputs directory
-    possible_paths = [
+    # Look for Excel files first
+    excel_paths = [
         f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_output.xlsx",
+        f".claude/skills/xlsx/{task_id}_output.xlsx",
         f"{task_id}_output.xlsx"
+    ]
+    
+    # Also check for PDF files
+    pdf_paths = [
+        f"data/gdpval/outputs/{task_id}_output.pdf",
+        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
+        f".claude/skills/pdf/{task_id}_output.pdf",
+        f"{task_id}_output.pdf"
     ]
 
     file_path = None
-    for path in possible_paths:
+    is_pdf = False
+    
+    # Check Excel files first
+    for path in excel_paths:
         if os.path.exists(path):
             file_path = path
             break
+    
+    # If no Excel, check PDF files
+    if not file_path:
+        for path in pdf_paths:
+            if os.path.exists(path):
+                file_path = path
+                is_pdf = True
+                break
 
     if not file_path:
-        raise HTTPException(status_code=404, detail="Excel file not found")
+        raise HTTPException(status_code=404, detail="Output file not found")
+
+    # Determine media type and filename
+    if is_pdf:
+        media_type = "application/pdf"
+        filename = f"{task_id}_output.pdf"
+    else:
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        filename = f"{task_id}_output.xlsx"
 
     return FileResponse(
         file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename=f"{task_id}_output.xlsx",
+        media_type=media_type,
+        filename=filename,
         headers={
-            "Content-Disposition": f'attachment; filename="{task_id}_output.xlsx"'
+            "Content-Disposition": f'attachment; filename="{filename}"'
         }
     )
 
