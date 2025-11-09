@@ -626,58 +626,73 @@ async def get_file(task_id: str):
 @router.get("/download/{task_id}")
 async def download_excel_result(task_id: str):
     """Download the generated Excel or PDF file for a task"""
+    import glob
 
-    # Check for PDF files FIRST (higher priority)
-    pdf_paths = [
+    # Check for PDF files FIRST (higher priority) - with timestamp support
+    pdf_patterns = [
+        f"data/gdpval/outputs/{task_id}_*_output.pdf",
         f"data/gdpval/outputs/{task_id}_output.pdf",
+        f"data/gdpval/deliverable_files/{task_id}_*_output.pdf",
         f"data/gdpval/deliverable_files/{task_id}_output.pdf",
+        f".claude/skills/pdf/{task_id}_*_output.pdf",
         f".claude/skills/pdf/{task_id}_output.pdf",
+        f"{task_id}_*_output.pdf",
         f"{task_id}_output.pdf"
     ]
     
     # Then check Excel files
-    excel_paths = [
+    excel_patterns = [
+        f"data/gdpval/outputs/{task_id}_*_output.xlsx",
         f"data/gdpval/outputs/{task_id}_output.xlsx",
+        f"data/gdpval/deliverable_files/{task_id}_*_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
+        f"data/gdpval/reference_files/{task_id}_*_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_output.xlsx",
+        f".claude/skills/xlsx/{task_id}_*_output.xlsx",
         f".claude/skills/xlsx/{task_id}_output.xlsx",
+        f"{task_id}_*_output.xlsx",
         f"{task_id}_output.xlsx"
     ]
 
     file_path = None
     is_pdf = False
     
-    # Check PDF files first (higher priority)
-    for path in pdf_paths:
-        if os.path.exists(path):
-            file_path = path
+    # Check PDF files first (most recent timestamp)
+    for pattern in pdf_patterns:
+        matches = glob.glob(pattern)
+        if matches:
+            # Sort by modification time, get most recent
+            file_path = max(matches, key=os.path.getmtime)
             is_pdf = True
             break
     
     # If no PDF, check Excel files
     if not file_path:
-        for path in excel_paths:
-            if os.path.exists(path):
-                file_path = path
+        for pattern in excel_patterns:
+            matches = glob.glob(pattern)
+            if matches:
+                # Sort by modification time, get most recent
+                file_path = max(matches, key=os.path.getmtime)
                 break
 
     if not file_path:
         raise HTTPException(status_code=404, detail="Output file not found")
 
-    # Determine media type and filename
+    # Extract actual filename
+    actual_filename = os.path.basename(file_path)
+
+    # Determine media type
     if is_pdf:
         media_type = "application/pdf"
-        filename = f"{task_id}_output.pdf"
     else:
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        filename = f"{task_id}_output.xlsx"
 
     return FileResponse(
         file_path,
         media_type=media_type,
-        filename=filename,
+        filename=actual_filename,
         headers={
-            "Content-Disposition": f'attachment; filename="{filename}"'
+            "Content-Disposition": f'attachment; filename="{actual_filename}"'
         }
     )
 
