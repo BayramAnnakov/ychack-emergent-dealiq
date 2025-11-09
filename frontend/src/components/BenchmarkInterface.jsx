@@ -53,15 +53,52 @@ function BenchmarkInterface({ onResultReady }) {
     setExecuting(true)
     setProgress(0)
     setStatus('Initializing task execution...')
-    setProgressLog([]) // Clear previous log
+    setProgressLog([])
+    setCostUsd(0)
+    setTokensUsed(0)
+    setActiveSkills([])
+    setShowConfetti(false)
+    setExecutionPhases([
+      { name: 'Initialize', status: 'active', icon: '🚀' },
+      { name: 'Analyze', status: 'pending', icon: '🔍' },
+      { name: 'Generate', status: 'pending', icon: '✍️' },
+      { name: 'Validate', status: 'pending', icon: '✅' }
+    ])
 
     try {
       await executeBenchmarkTask(selectedTask.task_id, {
-        onProgress: (message, progressValue) => {
+        onProgress: (message, progressValue, extras = {}) => {
           setStatus(message)
           setProgress(progressValue)
+          
+          // Update cost and tokens
+          if (extras.costUsd !== undefined) setCostUsd(extras.costUsd)
+          if (extras.tokens !== undefined) setTokensUsed(extras.tokens)
+          if (extras.activeSkills) setActiveSkills(extras.activeSkills)
+          
+          // Update execution phases based on progress
+          setExecutionPhases(phases => {
+            const newPhases = [...phases]
+            if (progressValue >= 20 && progressValue < 50) {
+              newPhases[0].status = 'complete'
+              newPhases[1].status = 'active'
+            } else if (progressValue >= 50 && progressValue < 80) {
+              newPhases[1].status = 'complete'
+              newPhases[2].status = 'active'
+            } else if (progressValue >= 80) {
+              newPhases[2].status = 'complete'
+              newPhases[3].status = 'active'
+            }
+            return newPhases
+          })
+          
           // Add to progress log
-          setProgressLog(prev => [...prev, { message, time: new Date().toLocaleTimeString(), progress: progressValue }])
+          setProgressLog(prev => [...prev, { 
+            message, 
+            time: new Date().toLocaleTimeString(), 
+            progress: progressValue,
+            skills: extras.activeSkills
+          }])
         },
         onComplete: (result) => {
           setProgress(100)
