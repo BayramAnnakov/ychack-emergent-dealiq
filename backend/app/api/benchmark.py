@@ -215,6 +215,58 @@ async def execute_benchmark_task(task_id: str):
     )
 
 
+@router.get("/result/{task_id}")
+async def get_task_result_metadata(task_id: str):
+    """Get metadata about the generated Excel file"""
+    import openpyxl
+    
+    # Look for the file
+    possible_paths = [
+        f"data/gdpval/outputs/{task_id}_output.xlsx",
+        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
+        f"data/gdpval/reference_files/{task_id}_output.xlsx",
+        f"{task_id}_output.xlsx"
+    ]
+
+    file_path = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            file_path = path
+            break
+
+    if not file_path:
+        raise HTTPException(status_code=404, detail="Excel file not found")
+
+    try:
+        # Load workbook to get metadata
+        wb = openpyxl.load_workbook(file_path, read_only=True, data_only=False)
+        
+        sheets_info = []
+        for sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            # Count rows with data
+            rows_with_data = sum(1 for row in ws.iter_rows() if any(cell.value for cell in row))
+            sheets_info.append({
+                "name": sheet_name,
+                "rows": rows_with_data,
+                "columns": ws.max_column
+            })
+        
+        wb.close()
+        
+        return {
+            "task_id": task_id,
+            "file_name": f"{task_id}_output.xlsx",
+            "file_path": file_path,
+            "file_size": os.path.getsize(file_path),
+            "sheets": sheets_info,
+            "sheet_count": len(sheets_info),
+            "download_url": f"/api/v1/benchmark/download/{task_id}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading Excel file: {str(e)}")
+
+
 @router.get("/download/{task_id}")
 async def download_excel_result(task_id: str):
     """Download the generated Excel file for a task"""
@@ -223,6 +275,7 @@ async def download_excel_result(task_id: str):
     possible_paths = [
         f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
+        f"data/gdpval/reference_files/{task_id}_output.xlsx",
         f"{task_id}_output.xlsx"
     ]
 
