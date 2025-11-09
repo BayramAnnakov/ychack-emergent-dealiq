@@ -62,12 +62,12 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
               if (onComplete) {
                 onComplete({
                   taskId: data.task_id,
+                  task_id: data.task_id,  // Also include snake_case
                   fileName: data.file_name,
+                  file_name: data.file_name,  // Also include snake_case
                   formulaCount: data.formula_count,
                   sections: data.sections,
-                  errors: data.errors,
-                  costUsd: data.cost_usd,
-                  tokens: data.tokens
+                  errors: data.errors
                 })
               }
             } else {
