@@ -137,28 +137,25 @@ function BenchmarkInterface({ onResultReady }) {
               {expandedTask === task.task_id && (
                 <div className="p-4 bg-gray-50 border-t border-gray-200">
                   <h4 className="text-sm font-semibold text-gray-900 mb-2">Task Description:</h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-line mb-3">
-                    {task.full_prompt}
-                  </p>
+                  <div className="bg-white border border-gray-200 rounded p-3 mb-4">
+                    <p className="text-sm text-gray-700 whitespace-pre-line">
+                      {task.full_prompt}
+                    </p>
+                  </div>
                   
                   {task.reference_file_urls && task.reference_file_urls.length > 0 && (
-                    <div className="mt-3">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Reference Files:</h4>
-                      <div className="space-y-1">
+                    <div className="mt-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">Reference Files:</h4>
+                      <div className="space-y-4">
                         {task.reference_file_urls.map((url, idx) => {
                           const fileName = url.split('/').pop()
                           return (
-                            <a
-                              key={idx}
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800"
-                            >
-                              <FileSpreadsheet className="h-4 w-4" />
-                              <span className="truncate">{fileName}</span>
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
+                            <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
+                              <ReferenceFilePreview 
+                                fileUrl={url}
+                                fileName={fileName}
+                              />
+                            </div>
                           )
                         })}
                       </div>
