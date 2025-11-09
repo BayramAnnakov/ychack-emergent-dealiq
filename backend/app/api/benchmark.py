@@ -117,6 +117,17 @@ async def list_benchmark_tasks():
                 "has_reference_files": len(task.get("reference_files", [])) > 0
             })
         
+        # Custom sort order - prioritize certain tasks for demo
+        task_priority = {
+            "Beutist Set Inventory Analysis": 1,
+            "XR Retailer Makeup Sales Analysis": 2,
+            "Beverage Inventory Stockout Prevention": 3,
+            "Men's Fragrance Competitive Pricing": 4,
+            "Automotive Parts Check-In Procedure": 5
+        }
+        
+        formatted_tasks.sort(key=lambda t: task_priority.get(t.get("title", ""), 99))
+        
         return {"tasks": formatted_tasks, "total": len(formatted_tasks)}
     except Exception as e:
         print(f"Error loading tasks: {e}")
