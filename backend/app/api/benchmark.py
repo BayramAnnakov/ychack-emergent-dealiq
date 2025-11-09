@@ -112,10 +112,8 @@ async def execute_benchmark_task(task_id: str):
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "user":
-                    # User message echo
-                    message = "👤 Query sent to Claude"
-                    last_progress = min(last_progress + 2, 85)
-                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    # Skip user message echo - not useful for display
+                    pass
                     
                 elif update_type == "assistant":
                     # Claude's response
