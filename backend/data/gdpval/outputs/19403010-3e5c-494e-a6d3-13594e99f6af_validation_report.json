@@ -1,0 +1,41 @@
+{
+  "file_path": "data/gdpval/outputs/19403010-3e5c-494e-a6d3-13594e99f6af_output.xlsx",
+  "file_type": "excel",
+  "is_valid": true,
+  "quality_score": 98,
+  "total_issues": 2,
+  "critical_issues": 0,
+  "warnings": 0,
+  "info_messages": 2,
+  "issues": [
+    {
+      "severity": "info",
+      "category": "quality",
+      "location": "All Sheets",
+      "message": "\u2705 72 formula-driven calculations found",
+      "value": null,
+      "formula": null,
+      "suggestion": "Formula-based analysis is best practice"
+    },
+    {
+      "severity": "info",
+      "category": "quality",
+      "location": "All Sheets",
+      "message": "\u2705 Zero formula errors - excellent quality",
+      "value": null,
+      "formula": null,
+      "suggestion": null
+    }
+  ],
+  "summary": {
+    "total_sheets": 1,
+    "total_cells": 297,
+    "formula_cells": 72,
+    "error_cells": 0,
+    "empty_cells": 142,
+    "numeric_cells": 31,
+    "formula_percentage": 24.2
+  },
+  "task_id": "19403010-3e5c-494e-a6d3-13594e99f6af",
+  "file_name": "19403010-3e5c-494e-a6d3-13594e99f6af_output.xlsx"
+}
