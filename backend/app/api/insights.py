@@ -149,8 +149,6 @@ async def predict_outcomes(
 @router.get("/history")
 async def get_analysis_history():
     """Get history of CRM analyses from saved files"""
-    import os
-    import json
     from datetime import datetime
     
     history_dir = "data/crm_analyses"
