@@ -212,11 +212,13 @@ async def get_task_history():
                 is_pdf = filename.endswith(".pdf")
                 
                 try:
-                    # Get file stats
+                    # Get file stats with UTC timezone
+                    from datetime import timezone
                     file_stat = os.stat(file_path)
                     file_size = file_stat.st_size
-                    created_at = datetime.fromtimestamp(file_stat.st_ctime).isoformat()
-                    modified_at = datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+                    # Use UTC timezone explicitly
+                    created_at = datetime.fromtimestamp(file_stat.st_ctime, tz=timezone.utc).isoformat()
+                    modified_at = datetime.fromtimestamp(file_stat.st_mtime, tz=timezone.utc).isoformat()
                     
                     # For Excel files, get sheet info
                     sheet_count = 0
