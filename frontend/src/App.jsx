@@ -8,6 +8,7 @@ import PipelineMetrics from './components/PipelineMetrics'
 import BenchmarkInterface from './components/BenchmarkInterface'
 import BenchmarkResults from './components/BenchmarkResults'
 import TaskHistory from './components/TaskHistory'
+import AnalysisHistory from './components/AnalysisHistory'
 
 function App() {
   const [mode, setMode] = useState('benchmark') // Default to 'benchmark' (Professional Reports)
