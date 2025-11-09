@@ -90,6 +90,18 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
 }
 
 /**
+ * Get task history (completed tasks)
+ * @returns {Promise<object>} List of completed tasks
+ */
+export async function getTaskHistory() {
+  const response = await fetch(`${API_BASE_URL}/benchmark/history`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch task history')
+  }
+  return await response.json()
+}
+
+/**
  * Get task result metadata
  * @param {string} taskId - The task ID
  * @returns {Promise<object>} Result metadata including sheets info
