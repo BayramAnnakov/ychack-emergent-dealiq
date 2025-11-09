@@ -383,10 +383,18 @@ async def execute_benchmark_task(task_id: str):
                             tool_id = tool.get("id", "")
                             
                             if tool_name == "Skill":
-                                # Skill invocation
+                                # Skill invocation - Track active skills
                                 skill_name = tool_input.get("skill", "unknown")
+                                active_skills.add(skill_name)
                                 message = f"🎯 Activating {skill_name} Skill..."
                                 detail = f"skill_{skill_name}"
+                                
+                                # Add to timeline
+                                timeline_phases.append({
+                                    "phase": f"{skill_name}_skill",
+                                    "status": "active",
+                                    "time": last_progress
+                                })
                                 
                             elif tool_name == "Read":
                                 file_path = tool_input.get("file_path", tool_input.get("path", ""))
