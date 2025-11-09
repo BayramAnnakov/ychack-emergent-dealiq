@@ -43,12 +43,15 @@ function BenchmarkInterface({ onResultReady }) {
     setExecuting(true)
     setProgress(0)
     setStatus('Initializing task execution...')
+    setProgressLog([]) // Clear previous log
 
     try {
       await executeBenchmarkTask(selectedTask.task_id, {
         onProgress: (message, progressValue) => {
           setStatus(message)
           setProgress(progressValue)
+          // Add to progress log
+          setProgressLog(prev => [...prev, { message, time: new Date().toLocaleTimeString(), progress: progressValue }])
         },
         onComplete: (result) => {
           setProgress(100)
