@@ -495,7 +495,15 @@ async def execute_benchmark_task(task_id: str):
                                 detail = f"tool_{tool_name.lower()}"
                             
                             last_progress = min(last_progress + 1, 85)
-                            yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': detail, 'tool': tool_name})}\n\n"
+                            yield f"data: {json.dumps({
+                                'status': message, 
+                                'progress': last_progress, 
+                                'detail': detail, 
+                                'tool': tool_name,
+                                'active_skills': list(active_skills),
+                                'cost_usd': total_cost,
+                                'tokens': tokens_used
+                            })}\n\n"
                     
                 elif update_type == "result":
                     # ToolResultBlock - show meaningful preview
