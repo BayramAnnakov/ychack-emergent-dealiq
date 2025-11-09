@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
-import { FileSpreadsheet, Download, ExternalLink, Loader, AlertCircle } from 'lucide-react'
+import { FileSpreadsheet, Download, Loader, AlertCircle } from 'lucide-react'
 
 /**
  * Component to preview reference Excel/CSV files from URLs
