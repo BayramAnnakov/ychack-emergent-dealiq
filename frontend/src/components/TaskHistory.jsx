@@ -154,7 +154,12 @@ function TaskHistory() {
                   <h3 className="font-semibold text-gray-900 truncate">
                     {task.task_title || task.file_name}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  {task.task_description && (
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      {task.task_description}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
                     {task.file_name}
                   </p>
                   
