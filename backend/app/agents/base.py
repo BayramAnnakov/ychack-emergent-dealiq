@@ -34,8 +34,8 @@ When analyzing data, look for patterns, anomalies, trends, and opportunities."""
         self.options = ClaudeAgentOptions(
             system_prompt=system_prompt,
             model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
-            max_turns=10,
-            permission_mode="bypassPermissions",  # Use default permission mode
+            max_turns=15,  # Increased to allow more comprehensive analysis
+            permission_mode="default",  # Provides complete analysis with non-root appuser
             allowed_tools=self.custom_tools if self.custom_tools else [],
             # continue_conversation=True,  # REMOVED - causes hanging issues
         )
