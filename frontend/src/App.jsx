@@ -130,7 +130,10 @@ function App() {
                 {/* Right Column - Results */}
                 <div className="lg:col-span-2">
                   {benchmarkResult ? (
-                    <BenchmarkResults result={benchmarkResult} />
+                    <BenchmarkResults 
+                      result={benchmarkResult} 
+                      key={benchmarkResult.taskId || benchmarkResult.task_id || Date.now()}
+                    />
                   ) : (
                     <div className="card text-center py-16">
                       <svg className="mx-auto h-24 w-24 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
