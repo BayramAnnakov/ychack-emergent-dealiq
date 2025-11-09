@@ -57,8 +57,6 @@ function BenchmarkInterface({ onResultReady }) {
     setProgress(0)
     setStatus('Initializing task execution...')
     setProgressLog([])
-    setCostUsd(0)
-    setTokensUsed(0)
     setActiveSkills([])
     setShowConfetti(false)
     setExecutionPhases([
@@ -74,9 +72,7 @@ function BenchmarkInterface({ onResultReady }) {
           setStatus(message)
           setProgress(progressValue)
           
-          // Update cost and tokens
-          if (extras.costUsd !== undefined) setCostUsd(extras.costUsd)
-          if (extras.tokens !== undefined) setTokensUsed(extras.tokens)
+          // Update active skills
           if (extras.activeSkills) setActiveSkills(extras.activeSkills)
           
           // Update execution phases based on progress
