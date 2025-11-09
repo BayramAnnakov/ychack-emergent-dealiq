@@ -60,6 +60,68 @@ Unless otherwise stated by the user or existing template
   - "Source: Bloomberg Terminal, 8/15/2025, AAPL US Equity"
   - "Source: FactSet, 8/20/2025, Consensus Estimates Screen"
 
+
+### Column Width and Formatting (CRITICAL)
+
+#### Auto-Adjust Column Widths
+**ALWAYS set appropriate column widths** to prevent text truncation:
+
+```python
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+wb = Workbook()
+ws = wb.active
+
+# After adding all data, auto-adjust column widths
+for column in ws.columns:
+    max_length = 0
+    column_letter = get_column_letter(column[0].column)
+    
+    for cell in column:
+        try:
+            if len(str(cell.value)) > max_length:
+                max_length = len(str(cell.value))
+        except:
+            pass
+    
+    # Set width with padding (1.2x for comfort)
+    adjusted_width = min((max_length + 2) * 1.2, 100)  # Cap at 100
+    ws.column_dimensions[column_letter].width = adjusted_width
+```
+
+#### Prevent Common Formatting Issues
+1. **Text wrapping for long content**
+   ```python
+   from openpyxl.styles import Alignment
+   
+   cell.alignment = Alignment(wrap_text=True, vertical='top')
+   ```
+
+2. **Merge cells carefully** - Can cause formula reference issues
+   ```python
+   # Only merge for headers/titles, not data cells
+   ws.merge_cells('A1:D1')  # Title row only
+   ```
+
+3. **Freeze panes for large data**
+   ```python
+   ws.freeze_panes = 'B2'  # Freeze first row and column
+   ```
+
+4. **Set row heights** for wrapped text
+   ```python
+   ws.row_dimensions[1].height = 30  # Header row
+   ```
+
+5. **Number format for readability**
+   ```python
+   cell.number_format = '#,##0.00'  # Thousands separator
+   cell.number_format = '$#,##0'    # Currency
+   cell.number_format = '0.0%'      # Percentage
+   ```
+
+
 # XLSX creation, editing, and analysis
 
 ## Overview
