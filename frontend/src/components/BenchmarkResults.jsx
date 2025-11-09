@@ -116,14 +116,13 @@ function BenchmarkResults({ result }) {
               <h4 className="font-medium text-gray-700">
                 📊 {fileMetadata.sheet_count} Worksheets
               </h4>
-              <a
-                href={getDownloadUrl(taskId)}
-                download
+              <button
+                onClick={handleDownload}
                 className="btn btn-sm btn-primary flex items-center space-x-1"
               >
                 <Download className="h-4 w-4" />
-                <span>Download Excel</span>
-              </a>
+                <span>Download</span>
+              </button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
