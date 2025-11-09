@@ -332,20 +332,7 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
           </div>
         </div>
 
-        {isLoading && streamingStatus && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-blue-700 font-medium">{streamingStatus}</span>
-              <span className="text-xs text-blue-600">{streamingProgress}%</span>
-            </div>
-            <div className="w-full bg-blue-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${streamingProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
+        {/* Removed old simple progress bar */}
 
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">Example queries:</p>
