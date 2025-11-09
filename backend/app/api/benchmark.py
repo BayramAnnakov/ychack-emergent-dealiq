@@ -537,10 +537,15 @@ async def execute_benchmark_task(task_id: str):
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "complete":
-                    # ResultMessage - show final stats
+                    # ResultMessage - extract cost and usage data
                     duration_ms = update.get("duration_ms", 0)
                     num_turns = update.get("num_turns", 0)
-                    total_cost = update.get("total_cost_usd", 0)
+                    total_cost = update.get("total_cost_usd", 0) or 0
+                    usage = update.get("usage", {})
+                    
+                    # Extract token information
+                    if usage:
+                        tokens_used = usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
                     
                     if duration_ms and num_turns:
                         duration_sec = duration_ms / 1000
@@ -552,7 +557,14 @@ async def execute_benchmark_task(task_id: str):
                         message = "✨ Claude analysis complete"
                     
                     last_progress = 90
-                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    yield f"data: {json.dumps({
+                        'status': message, 
+                        'progress': last_progress,
+                        'cost_usd': total_cost,
+                        'tokens': tokens_used,
+                        'duration_ms': duration_ms,
+                        'num_turns': num_turns
+                    })}\n\n"
                     break
                 
                 # Small delay to prevent overwhelming the client
