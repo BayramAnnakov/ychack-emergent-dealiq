@@ -331,6 +331,16 @@ Quick checks to ensure formulas work correctly:
 - [ ] **Test edge cases**: Include zero, negative, and very large values
 
 ### Interpreting recalc.py Output
+**CRITICAL: Always use adequate timeout when calling recalc.py**
+
+```bash
+# Correct usage with timeout
+python recalc.py output.xlsx 120
+
+# The timeout parameter (120) is MANDATORY for reliable operation
+# Default 30s timeout will cause failures on files with many formulas
+```
+
 The script returns JSON with error details:
 ```json
 {
