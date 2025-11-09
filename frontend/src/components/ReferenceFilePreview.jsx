@@ -61,10 +61,6 @@ function ReferenceFilePreview({ fileUrl, fileName }) {
     document.body.removeChild(link)
   }
 
-  const getGoogleSheetsUrl = () => {
-    return `https://docs.google.com/spreadsheets/d/new?url=${encodeURIComponent(fileUrl)}`
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
