@@ -106,6 +106,19 @@ function BenchmarkInterface({ onResultReady }) {
           console.log('BenchmarkInterface onComplete called with:', result)
           setProgress(100)
           setStatus('Complete!')
+          setCompletedTaskId(result.task_id || result.taskId)
+          
+          // Fetch QA validation
+          const taskId = result.task_id || result.taskId
+          if (taskId) {
+            fetch(`/api/v1/benchmark/validate/${taskId}`)
+              .then(res => res.json())
+              .then(data => {
+                setQaScore(data.quality_score)
+                console.log('QA Score loaded:', data.quality_score)
+              })
+              .catch(err => console.error('Failed to load QA:', err))
+          }
           
           // Mark all phases complete
           setExecutionPhases(phases => phases.map(p => ({ ...p, status: 'complete' })))
