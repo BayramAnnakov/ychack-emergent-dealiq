@@ -7,10 +7,12 @@ function BenchmarkResults({ result }) {
   const [fileMetadata, setFileMetadata] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(true)
+  
+  // Extract taskId from result
+  const taskId = result?.task_id || result?.taskId
 
   useEffect(() => {
-    if (result?.task_id || result?.taskId) {
-      const taskId = result.task_id || result.taskId
+    if (taskId) {
       // Fetch file metadata
       getTaskResult(taskId)
         .then(data => {
