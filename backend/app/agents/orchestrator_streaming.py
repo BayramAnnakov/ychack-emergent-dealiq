@@ -188,10 +188,20 @@ Format your responses with clear sections and bullet points."""
 
                         total_content_length += len(content)
 
-                        # DEBUG: Check if message has usage
-                        message_usage = getattr(message, 'usage', None)
-                        message_id = getattr(message, 'id', None)
-                        print(f"DEBUG ORCHESTRATOR: message.usage = {message_usage}, message.id = {message_id}")
+                        # DEBUG: Check what attributes the message actually has
+                        print(f"DEBUG ORCHESTRATOR: AssistantMessage attributes: {dir(message)}")
+                        
+                        # Extract usage if available
+                        message_usage = None
+                        message_id = None
+                        
+                        if hasattr(message, 'usage'):
+                            message_usage = message.usage
+                            print(f"DEBUG ORCHESTRATOR: Found usage attribute: {message_usage}")
+                        
+                        if hasattr(message, 'id'):
+                            message_id = message.id
+                            print(f"DEBUG ORCHESTRATOR: Found id attribute: {message_id}")
 
                         # Yield the message with usage data
                         yield {
