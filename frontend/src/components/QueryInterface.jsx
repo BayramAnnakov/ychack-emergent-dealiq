@@ -352,6 +352,7 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
         </div>
       </form>
     </div>
+    </>
   )
 }
 
