@@ -15,6 +15,8 @@ function BenchmarkInterface({ onResultReady }) {
   const [progressLog, setProgressLog] = useState([])
   const [activeSkills, setActiveSkills] = useState([])
   const [showConfetti, setShowConfetti] = useState(false)
+  const [completedTaskId, setCompletedTaskId] = useState(null)
+  const [qaScore, setQaScore] = useState(null)
   const [executionPhases, setExecutionPhases] = useState([
     { name: 'Initialize', status: 'pending', icon: '🚀' },
     { name: 'Analyze', status: 'pending', icon: '🔍' },
@@ -34,6 +36,7 @@ function BenchmarkInterface({ onResultReady }) {
       setTasks(data.tasks || [])
       if (data.tasks && data.tasks.length > 0) {
         setSelectedTask(data.tasks[0])
+        // Don't auto-expand - let user click to expand
       }
       setLoading(false)
     } catch (error) {
@@ -100,8 +103,22 @@ function BenchmarkInterface({ onResultReady }) {
           }])
         },
         onComplete: (result) => {
+          console.log('BenchmarkInterface onComplete called with:', result)
           setProgress(100)
           setStatus('Complete!')
+          setCompletedTaskId(result.task_id || result.taskId)
+          
+          // Fetch QA validation
+          const taskId = result.task_id || result.taskId
+          if (taskId) {
+            fetch(`/api/v1/benchmark/validate/${taskId}`)
+              .then(res => res.json())
+              .then(data => {
+                setQaScore(data.quality_score)
+                console.log('QA Score loaded:', data.quality_score)
+              })
+              .catch(err => console.error('Failed to load QA:', err))
+          }
           
           // Mark all phases complete
           setExecutionPhases(phases => phases.map(p => ({ ...p, status: 'complete' })))
@@ -113,16 +130,12 @@ function BenchmarkInterface({ onResultReady }) {
           const isPdf = result.file_name?.endsWith('.pdf')
           toast.success(isPdf ? 'PDF report generated successfully!' : 'Excel report generated successfully!')
 
+          console.log('Calling onResultReady with result:', result)
           if (onResultReady) {
             onResultReady(result)
           }
 
-          setTimeout(() => {
-            setExecuting(false)
-            setProgress(0)
-            setStatus('')
-            setShowConfetti(false)
-          }, 3000)
+          // Don't auto-close - user closes manually with X button
         },
         onError: (error) => {
           toast.error(error.message || 'Failed to execute task')
@@ -287,14 +300,34 @@ function BenchmarkInterface({ onResultReady }) {
             {/* Header */}
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+                {progress >= 100 ? (
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                ) : (
+                  <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+                )}
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {selectedTask?.title || 'Executing Task'}
+                {progress >= 100 ? 'Task Complete!' : (selectedTask?.title || 'Executing Task')}
               </h2>
               <p className="text-gray-600 mb-3">
-                Claude Agent SDK is working on your professional report...
+                {progress >= 100 
+                  ? 'Your professional report is ready!'
+                  : 'Claude Agent SDK is working on your professional report...'
+                }
               </p>
+              
+              {/* QA Badge when complete */}
+              {progress >= 100 && qaScore !== null && (
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-2 rounded-full border border-green-200">
+                  <span className="text-green-600 font-semibold">🛡️</span>
+                  <span className="text-sm font-semibold text-gray-700">Quality Score:</span>
+                  <span className={`text-lg font-bold ${
+                    qaScore >= 90 ? 'text-green-600' : qaScore >= 70 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {qaScore}/100
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Execution Timeline */}

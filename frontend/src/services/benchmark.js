@@ -56,15 +56,18 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
         if (line.startsWith('data: ')) {
           try {
             const data = JSON.parse(line.slice(6))
+            
+            console.log('SSE data received:', data)
 
             if (data.status === 'complete') {
               // Task completed
+              console.log('Task complete! Calling onComplete with:', data)
               if (onComplete) {
                 onComplete({
                   taskId: data.task_id,
-                  task_id: data.task_id,  // Also include snake_case
+                  task_id: data.task_id,
                   fileName: data.file_name,
-                  file_name: data.file_name,  // Also include snake_case
+                  file_name: data.file_name,
                   formulaCount: data.formula_count,
                   sections: data.sections,
                   errors: data.errors
@@ -149,12 +152,17 @@ export async function downloadExcelResult(taskId) {
     const contentDisposition = response.headers.get('Content-Disposition')
     let filename = `${taskId}_output.xlsx` // fallback
     
+    console.log('Content-Disposition header:', contentDisposition)
+    
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/)
       if (filenameMatch && filenameMatch[1]) {
         filename = filenameMatch[1]
+        console.log('Extracted filename:', filename)
       }
     }
+    
+    console.log('Using filename for download:', filename)
     
     // Get the blob
     const blob = await response.blob()

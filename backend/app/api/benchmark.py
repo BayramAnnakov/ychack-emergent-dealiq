@@ -117,6 +117,17 @@ async def list_benchmark_tasks():
                 "has_reference_files": len(task.get("reference_files", [])) > 0
             })
         
+        # Custom sort order - prioritize certain tasks for demo
+        task_priority = {
+            "Beutist Set Inventory Analysis": 1,
+            "XR Retailer Makeup Sales Analysis": 2,
+            "Beverage Inventory Stockout Prevention": 3,
+            "Men's Fragrance Competitive Pricing": 4,
+            "Automotive Parts Check-In Procedure": 5
+        }
+        
+        formatted_tasks.sort(key=lambda t: task_priority.get(t.get("title", ""), 99))
+        
         return {"tasks": formatted_tasks, "total": len(formatted_tasks)}
     except Exception as e:
         print(f"Error loading tasks: {e}")
@@ -132,6 +143,7 @@ async def get_task_history():
     # Load task titles for matching
     tasks_file = "data/gdpval/sales_reps/sales_reps_tasks.json"
     task_titles = {}
+    task_descriptions = {}
     
     if os.path.exists(tasks_file):
         with open(tasks_file, 'r') as f:
@@ -156,6 +168,17 @@ async def get_task_history():
                     title = prompt.split('.')[0][:60]
                 
                 task_titles[task_id] = title
+                
+                # Extract first paragraph for preview (truncated)
+                paragraphs = prompt.split('\n\n')
+                first_para = paragraphs[0] if paragraphs else prompt
+                description_preview = first_para[:200] + "..." if len(first_para) > 200 else first_para
+                
+                # Store both preview and full description
+                task_descriptions[task_id] = {
+                    "preview": description_preview,
+                    "full": prompt  # Full task prompt, not truncated
+                }
     
     completed_tasks = []
     
@@ -201,11 +224,13 @@ async def get_task_history():
                 is_pdf = filename.endswith(".pdf")
                 
                 try:
-                    # Get file stats
+                    # Get file stats with UTC timezone
+                    from datetime import timezone
                     file_stat = os.stat(file_path)
                     file_size = file_stat.st_size
-                    created_at = datetime.fromtimestamp(file_stat.st_ctime).isoformat()
-                    modified_at = datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+                    # Use UTC timezone explicitly
+                    created_at = datetime.fromtimestamp(file_stat.st_ctime, tz=timezone.utc).isoformat()
+                    modified_at = datetime.fromtimestamp(file_stat.st_mtime, tz=timezone.utc).isoformat()
                     
                     # For Excel files, get sheet info
                     sheet_count = 0
@@ -217,9 +242,13 @@ async def get_task_history():
                         sheet_names = wb.sheetnames
                         wb.close()
                     
+                    task_desc = task_descriptions.get(task_id, {})
+                    
                     completed_tasks.append({
                         "task_id": task_id,
                         "task_title": task_titles.get(task_id, "Unknown Task"),
+                        "task_description": task_desc.get("preview", "") if isinstance(task_desc, dict) else task_desc,
+                        "task_description_full": task_desc.get("full", "") if isinstance(task_desc, dict) else task_desc,
                         "file_name": filename,
                         "file_type": "pdf" if is_pdf else "excel",
                         "file_size": file_size,
@@ -625,22 +654,22 @@ async def get_task_result_metadata(task_id: str):
     import openpyxl
     import glob
     
-    # Look for files with timestamp support (PDF or Excel)
-    all_patterns = [
+    # ONLY look for timestamped files (new format) - EXCLUDE old files without timestamps
+    # This ensures we always get the latest execution, not old cached files
+    timestamped_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.*",
-        f"data/gdpval/outputs/{task_id}_output.*",
+        f"data/gdpval/deliverable_files/{task_id}_*_output.*",
+        f"data/gdpval/reference_files/{task_id}_*_output.*",
         f".claude/skills/xlsx/{task_id}_*_output.xlsx",
-        f".claude/skills/xlsx/{task_id}_output.xlsx",
         f".claude/skills/pdf/{task_id}_*_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_*_output.*",
-        f"{task_id}_output.*"
+        f"{task_id}_*_output.*"
     ]
     
     file_path = None
-    for pattern in all_patterns:
+    for pattern in timestamped_patterns:
         matches = glob.glob(pattern)
         if matches:
+            # Get most recent timestamped file
             file_path = max(matches, key=os.path.getmtime)
             break
 
@@ -704,30 +733,22 @@ async def get_file(task_id: str):
     """Serve the Excel or PDF file for browser preview (without forcing download)"""
     import glob
     
-    # Look for PDF files FIRST (higher priority) - with timestamp support
+    # Look ONLY for timestamped files (new format) - exclude old non-timestamped
+    # PDF files FIRST (higher priority)
     pdf_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.pdf",
-        f"data/gdpval/outputs/{task_id}_output.pdf",
         f"data/gdpval/deliverable_files/{task_id}_*_output.pdf",
-        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
         f".claude/skills/pdf/{task_id}_*_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_*_output.pdf",
-        f"{task_id}_output.pdf"
+        f"{task_id}_*_output.pdf"
     ]
     
-    # Then look for Excel files
+    # Then Excel files
     excel_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.xlsx",
-        f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/reference_files/{task_id}_output.xlsx",
         f".claude/skills/xlsx/{task_id}_*_output.xlsx",
-        f".claude/skills/xlsx/{task_id}_output.xlsx",
-        f"{task_id}_*_output.xlsx",
-        f"{task_id}_output.xlsx"
+        f"{task_id}_*_output.xlsx"
     ]
 
     file_path = None
@@ -781,30 +802,22 @@ async def download_excel_result(task_id: str):
     """Download the generated Excel or PDF file for a task"""
     import glob
 
-    # Check for PDF files FIRST (higher priority) - with timestamp support
+    # Check ONLY timestamped files (exclude old non-timestamped files)
+    # PDF files first (higher priority)
     pdf_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.pdf",
-        f"data/gdpval/outputs/{task_id}_output.pdf",
         f"data/gdpval/deliverable_files/{task_id}_*_output.pdf",
-        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
         f".claude/skills/pdf/{task_id}_*_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_*_output.pdf",
-        f"{task_id}_output.pdf"
+        f"{task_id}_*_output.pdf"
     ]
     
-    # Then check Excel files
+    # Then Excel files
     excel_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.xlsx",
-        f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/reference_files/{task_id}_output.xlsx",
         f".claude/skills/xlsx/{task_id}_*_output.xlsx",
-        f".claude/skills/xlsx/{task_id}_output.xlsx",
-        f"{task_id}_*_output.xlsx",
-        f"{task_id}_output.xlsx"
+        f"{task_id}_*_output.xlsx"
     ]
 
     file_path = None

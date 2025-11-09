@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Clock, FileSpreadsheet, Download, Eye, Table, FileText } from 'lucide-react'
+import { Clock, FileSpreadsheet, Download, Eye, Table, FileText, ChevronDown, ChevronUp } from 'lucide-react'
 import { getTaskHistory, downloadExcelResult } from '../services/benchmark'
 import ExcelPreview from './ExcelPreview'
 import PdfPreview from './PdfPreview'
@@ -9,6 +9,8 @@ function TaskHistory() {
   const [loading, setLoading] = useState(true)
   const [selectedTask, setSelectedTask] = useState(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [expandedDescriptions, setExpandedDescriptions] = useState({})
+  const [qaScores, setQaScores] = useState({})
 
   useEffect(() => {
     loadHistory()
@@ -19,6 +21,24 @@ function TaskHistory() {
       setLoading(true)
       const data = await getTaskHistory()
       setHistory(data.tasks || [])
+      
+      console.log('Loading QA scores for tasks:', data.tasks?.length)
+      
+      // Load QA scores for each task
+      if (data.tasks) {
+        for (const task of data.tasks) {
+          try {
+            console.log(`Fetching QA for ${task.task_id}`)
+            const response = await fetch(`/api/v1/benchmark/validate/${task.task_id}`)
+            const qaData = await response.json()
+            console.log(`QA for ${task.task_id}: ${qaData.quality_score}`)
+            setQaScores(prev => ({ ...prev, [task.task_id]: qaData.quality_score }))
+          } catch (error) {
+            console.error(`Failed to load QA for ${task.task_id}:`, error)
+          }
+        }
+      }
+      
       setLoading(false)
     } catch (error) {
       console.error('Failed to load history:', error)
@@ -28,18 +48,15 @@ function TaskHistory() {
 
   const formatDate = (isoDate) => {
     const date = new Date(isoDate)
-    const now = new Date()
-    const diffMs = now - date
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-    
-    return date.toLocaleDateString()
+    // Show actual date and time instead of relative
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 
   const formatFileSize = (bytes) => {
@@ -140,7 +157,7 @@ function TaskHistory() {
       <div className="grid grid-cols-1 gap-4">
         {history.map((task) => (
           <div
-            key={task.task_id}
+            key={task.file_name}
             className="card hover:shadow-lg transition-shadow"
           >
             <div className="flex items-start justify-between">
@@ -157,7 +174,38 @@ function TaskHistory() {
                   <h3 className="font-semibold text-gray-900 truncate">
                     {task.task_title || task.file_name}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  {task.task_description && (
+                    <div className="mt-1">
+                      <p className={`text-sm text-gray-600 whitespace-pre-line ${expandedDescriptions[task.task_id] ? '' : 'line-clamp-2'}`}>
+                        {expandedDescriptions[task.task_id] 
+                          ? (task.task_description_full || task.task_description)
+                          : task.task_description
+                        }
+                      </p>
+                      {(task.task_description_full || task.task_description.length > 100) && (
+                        <button
+                          onClick={() => setExpandedDescriptions(prev => ({
+                            ...prev,
+                            [task.task_id]: !prev[task.task_id]
+                          }))}
+                          className="text-xs text-blue-600 hover:text-blue-800 mt-1 flex items-center space-x-1"
+                        >
+                          {expandedDescriptions[task.task_id] ? (
+                            <>
+                              <ChevronUp className="h-3 w-3" />
+                              <span>Show less</span>
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-3 w-3" />
+                              <span>Show more</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
                     {task.file_name}
                   </p>
                   
@@ -185,6 +233,19 @@ function TaskHistory() {
                     }`}>
                       {task.file_type === 'pdf' ? 'PDF' : 'Excel'}
                     </span>
+                    
+                    {/* QA Score Badge */}
+                    {qaScores[task.task_id] !== undefined && (
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                        qaScores[task.task_id] >= 90 
+                          ? 'bg-green-100 text-green-700' 
+                          : qaScores[task.task_id] >= 70
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        QA: {qaScores[task.task_id]}/100
+                      </span>
+                    )}
                   </div>
 
                   {task.file_type === 'excel' && task.sheet_names && task.sheet_names.length > 0 && (
