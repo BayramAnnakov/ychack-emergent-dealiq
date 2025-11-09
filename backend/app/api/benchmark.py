@@ -53,45 +53,98 @@ async def get_benchmark_tasks():
 @router.post("/execute/{task_id}")
 async def execute_benchmark_task(task_id: str):
     """
-    Execute a benchmark task and return streaming updates
-
-    For demo purposes, this simulates the execution.
-    In production, this would call the actual GDPval executor.
+    Execute a benchmark task using BenchmarkOrchestrator with Claude
     """
     async def event_generator():
-        """Generate SSE events for task execution"""
-
-        # Simulated execution steps
-        steps = [
-            ("Initializing task execution...", 10),
-            ("Loading reference data...", 20),
-            ("Analyzing sales patterns...", 35),
-            ("Calculating YoY metrics...", 50),
-            ("Generating Excel formulas...", 65),
-            ("Creating professional formatting...", 80),
-            ("Validating output quality...", 90),
-            ("Finalizing report...", 95),
-            ("Complete!", 100)
-        ]
-
-        for message, progress in steps:
-            event_data = {
-                "status": message,
-                "progress": progress
+        """Generate SSE events from actual Claude execution"""
+        
+        try:
+            # Send initial status
+            yield f"data: {json.dumps({'status': 'Initializing Claude...', 'progress': 5})}\n\n"
+            
+            # Task details - for now we have one hardcoded task
+            task_description = """
+            Analyze the XR Retailer 2023 Makeup Sales data and create a comprehensive Excel report with:
+            
+            1. Overall Business Performance (YoY comparison)
+            2. Discontinued SKUs Risk Analysis 
+            3. Top Volume Drivers Analysis
+            4. Volume Increases & Decreases
+            5. Strategic Recommendations
+            
+            Use formulas for all calculations. Format professionally with clear sections.
+            """
+            
+            # Reference file path
+            reference_file = f"/app/backend/data/gdpval/reference_files/DATA_XR_MU_2023.xlsx"
+            
+            if not os.path.exists(reference_file):
+                raise HTTPException(status_code=404, detail=f"Reference file not found: {reference_file}")
+            
+            yield f"data: {json.dumps({'status': 'Loading reference data...', 'progress': 10})}\n\n"
+            
+            # Create orchestrator
+            orchestrator = BenchmarkOrchestrator(verbose=True)
+            
+            yield f"data: {json.dumps({'status': 'Starting Claude analysis...', 'progress': 15})}\n\n"
+            
+            # Execute the task with streaming
+            output_text = ""
+            output_files = []
+            last_progress = 15
+            
+            async for update in orchestrator.execute_gpteval_task_streaming(
+                task_description=task_description,
+                reference_file_paths=[reference_file],
+                output_file_name=f"{task_id}_output.xlsx"
+            ):
+                update_type = update.get("type", "")
+                
+                if update_type == "status":
+                    # Send status updates
+                    message = update.get("message", "Processing...")
+                    last_progress = min(last_progress + 5, 90)
+                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    
+                elif update_type == "tool":
+                    # Tool usage
+                    tool_name = update.get("tool_name", "")
+                    message = f"Using {tool_name}..."
+                    yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    
+                elif update_type == "partial":
+                    # Partial content
+                    content = update.get("content", "")
+                    output_text += content
+                    
+                elif update_type == "file":
+                    # File created
+                    file_path = update.get("path", "")
+                    output_files.append(file_path)
+                    yield f"data: {json.dumps({'status': f'Created {os.path.basename(file_path)}', 'progress': 85})}\n\n"
+                    
+                elif update_type == "complete":
+                    # Execution complete
+                    break
+            
+            # Final result
+            result = {
+                "status": "complete",
+                "task_id": task_id,
+                "file_name": f"{task_id}_output.xlsx",
+                "output_text": output_text[:500] if output_text else "Analysis complete",
+                "files_created": len(output_files),
+                "errors": 0
             }
-            yield f"data: {json.dumps(event_data)}\n\n"
-            await asyncio.sleep(2)  # Simulate work
-
-        # Final result
-        result = {
-            "status": "complete",
-            "task_id": task_id,
-            "file_name": f"{task_id}_output.xlsx",
-            "formula_count": 73,
-            "sections": 5,
-            "errors": 0
-        }
-        yield f"data: {json.dumps(result)}\n\n"
+            yield f"data: {json.dumps(result)}\n\n"
+            
+        except Exception as e:
+            error_result = {
+                "status": "error",
+                "error": str(e),
+                "progress": 0
+            }
+            yield f"data: {json.dumps(error_result)}\n\n"
 
     return StreamingResponse(
         event_generator(),
