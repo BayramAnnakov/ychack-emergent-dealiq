@@ -9,6 +9,7 @@ function TaskHistory() {
   const [loading, setLoading] = useState(true)
   const [selectedTask, setSelectedTask] = useState(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [expandedDescriptions, setExpandedDescriptions] = useState({})
 
   useEffect(() => {
     loadHistory()
