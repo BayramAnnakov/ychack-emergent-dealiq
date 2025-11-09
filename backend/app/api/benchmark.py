@@ -654,22 +654,22 @@ async def get_task_result_metadata(task_id: str):
     import openpyxl
     import glob
     
-    # Look for files with timestamp support (PDF or Excel)
-    all_patterns = [
+    # ONLY look for timestamped files (new format) - EXCLUDE old files without timestamps
+    # This ensures we always get the latest execution, not old cached files
+    timestamped_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.*",
-        f"data/gdpval/outputs/{task_id}_output.*",
+        f"data/gdpval/deliverable_files/{task_id}_*_output.*",
+        f"data/gdpval/reference_files/{task_id}_*_output.*",
         f".claude/skills/xlsx/{task_id}_*_output.xlsx",
-        f".claude/skills/xlsx/{task_id}_output.xlsx",
         f".claude/skills/pdf/{task_id}_*_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_*_output.*",
-        f"{task_id}_output.*"
+        f"{task_id}_*_output.*"
     ]
     
     file_path = None
-    for pattern in all_patterns:
+    for pattern in timestamped_patterns:
         matches = glob.glob(pattern)
         if matches:
+            # Get most recent timestamped file
             file_path = max(matches, key=os.path.getmtime)
             break
 
