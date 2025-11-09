@@ -56,12 +56,11 @@ Format your responses with clear sections and bullet points."""
 
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
-            model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
-            max_turns=15,  # Increased for comprehensive analysis
-            permission_mode="default",  # Works with non-root user (appuser)
-            cwd=backend_dir,  # Set to backend dir where data/uploads is
-            cli_path="/home/appuser/node_modules/.bin/claude"  # Path to claude CLI for appuser
-            # continue_conversation=True
+            model="sonnet",
+            max_turns=5,  # REDUCED for faster "Quick" analysis (was 15)
+            permission_mode="default",
+            cwd=backend_dir,
+            cli_path="/home/appuser/node_modules/.bin/claude"
         )
 
     async def analyze_streaming(
