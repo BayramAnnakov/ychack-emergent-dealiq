@@ -578,22 +578,6 @@ async def execute_benchmark_task(task_id: str):
                 # Small delay to prevent overwhelming the client
                 await asyncio.sleep(0.05)
             
-            # Final status
-            yield f"data: {json.dumps({'status': '🎉 Analysis complete!', 'progress': 95})}\n\n"
-            await asyncio.sleep(0.5)
-            
-            # Final result
-            result = {
-                "status": "complete",
-                "task_id": task_id,
-                "file_name": output_filename,
-                "output_text": output_text[:500] if output_text else "Analysis complete",
-                "files_created": len(output_files),
-                "errors": 0,
-                "progress": 100
-            }
-            yield f"data: {json.dumps(result)}\n\n"
-            
         except Exception as e:
             import traceback
             error_detail = traceback.format_exc()
