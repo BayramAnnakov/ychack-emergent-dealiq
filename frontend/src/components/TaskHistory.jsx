@@ -21,6 +21,18 @@ function TaskHistory() {
       setLoading(true)
       const data = await getTaskHistory()
       setHistory(data.tasks || [])
+      
+      // Load QA scores for each task
+      (data.tasks || []).forEach(async (task) => {
+        try {
+          const response = await fetch(`/api/v1/benchmark/validate/${task.task_id}`)
+          const qaData = await response.json()
+          setQaScores(prev => ({ ...prev, [task.task_id]: qaData.quality_score }))
+        } catch (error) {
+          console.error(`Failed to load QA for ${task.task_id}:`, error)
+        }
+      })
+      
       setLoading(false)
     } catch (error) {
       console.error('Failed to load history:', error)
