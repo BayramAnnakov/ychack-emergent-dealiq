@@ -152,12 +152,17 @@ export async function downloadExcelResult(taskId) {
     const contentDisposition = response.headers.get('Content-Disposition')
     let filename = `${taskId}_output.xlsx` // fallback
     
+    console.log('Content-Disposition header:', contentDisposition)
+    
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/)
       if (filenameMatch && filenameMatch[1]) {
         filename = filenameMatch[1]
+        console.log('Extracted filename:', filename)
       }
     }
+    
+    console.log('Using filename for download:', filename)
     
     // Get the blob
     const blob = await response.blob()
