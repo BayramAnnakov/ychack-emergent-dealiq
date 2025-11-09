@@ -116,9 +116,34 @@ export function getDownloadUrl(taskId) {
  * Download Excel result file
  * @param {string} taskId - The task ID
  */
-export function downloadExcelResult(taskId) {
+export async function downloadExcelResult(taskId) {
   const url = `${API_BASE_URL}/benchmark/download/${taskId}`
-  window.open(url, '_blank')
+  
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error('Failed to download file')
+    }
+    
+    // Get the blob
+    const blob = await response.blob()
+    
+    // Create a download link
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = downloadUrl
+    a.download = `${taskId}_output.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    
+    // Cleanup
+    window.URL.revokeObjectURL(downloadUrl)
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('Download failed:', error)
+    // Fallback to window.open
+    window.open(url, '_blank')
+  }
 }
 
 /**
