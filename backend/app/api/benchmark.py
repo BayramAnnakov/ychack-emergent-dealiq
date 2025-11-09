@@ -27,27 +27,88 @@ class BenchmarkTask(BaseModel):
 
 
 @router.get("/tasks")
-async def get_benchmark_tasks():
-    """Get list of available GDPval benchmark tasks"""
-    # For demo, return the one task we've executed
+async def list_benchmark_tasks():
+    """List available benchmark tasks"""
+    
+    # For now, return a static list of GDPval sales tasks
+    # In production, this would query the database or file system
     tasks = [
         {
             "id": "19403010-3e5c-494e-a6d3-13594e99f6af",
-            "title": "XR Retailer 2023 Makeup Sales Analysis",
-            "description": "Comprehensive sales performance analysis including YoY comparison, discontinued SKU risk assessment, volume drivers analysis, and strategic recommendations.",
-            "category": "Sales Analytics",
-            "difficulty": 3,
-            "estimated_time": "45-60 seconds",
-            "sections": [
-                "Overall Business Performance",
-                "Discontinued SKUs Risk Analysis",
-                "Top Volume Drivers",
-                "Volume Increases & Decreases",
-                "Strategic Recommendations"
-            ]
+            "name": "XR Retailer 2023 Makeup Sales Analysis",
+            "description": "Analyze sales data and create comprehensive Excel report with YoY comparison",
+            "difficulty": "Medium",
+            "estimated_time": "60-90 seconds"
         }
     ]
+    
     return {"tasks": tasks}
+
+
+@router.get("/history")
+async def get_task_history():
+    """Get history of completed tasks by scanning for output files"""
+    import openpyxl
+    from datetime import datetime
+    
+    completed_tasks = []
+    
+    # Scan for output files in various directories
+    search_paths = [
+        "data/gdpval/outputs",
+        "data/gdpval/deliverable_files", 
+        "data/gdpval/reference_files",
+        "."
+    ]
+    
+    seen_files = set()
+    
+    for search_path in search_paths:
+        if not os.path.exists(search_path):
+            continue
+            
+        for filename in os.listdir(search_path):
+            if filename.endswith("_output.xlsx") and filename not in seen_files:
+                seen_files.add(filename)
+                file_path = os.path.join(search_path, filename)
+                
+                # Extract task ID from filename
+                task_id = filename.replace("_output.xlsx", "")
+                
+                try:
+                    # Get file stats
+                    file_stat = os.stat(file_path)
+                    file_size = file_stat.st_size
+                    created_at = datetime.fromtimestamp(file_stat.st_ctime).isoformat()
+                    modified_at = datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+                    
+                    # Load workbook to get sheet info
+                    wb = openpyxl.load_workbook(file_path, read_only=True)
+                    sheet_count = len(wb.sheetnames)
+                    sheet_names = wb.sheetnames
+                    wb.close()
+                    
+                    completed_tasks.append({
+                        "task_id": task_id,
+                        "file_name": filename,
+                        "file_size": file_size,
+                        "sheet_count": sheet_count,
+                        "sheet_names": sheet_names[:3],  # First 3 sheets
+                        "created_at": created_at,
+                        "modified_at": modified_at,
+                        "file_path": file_path
+                    })
+                except Exception as e:
+                    print(f"Error processing {filename}: {e}")
+                    continue
+    
+    # Sort by modified time (newest first)
+    completed_tasks.sort(key=lambda x: x["modified_at"], reverse=True)
+    
+    return {
+        "tasks": completed_tasks,
+        "total": len(completed_tasks)
+    }
 
 
 @router.post("/execute/{task_id}")
