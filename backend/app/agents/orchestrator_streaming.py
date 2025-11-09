@@ -208,12 +208,13 @@ Format your responses with clear sections and bullet points."""
                             print(f"   Turns: {getattr(message, 'num_turns', 0)}")
 
                         yield {
-                            "type": "result",
+                            "type": "complete",
                             "duration_ms": getattr(message, 'duration_ms', 0),
-                            "cost_usd": getattr(message, 'total_cost_usd', 0),
+                            "total_cost_usd": getattr(message, 'total_cost_usd', 0),
                             "is_error": getattr(message, 'is_error', False),
                             "num_turns": getattr(message, 'num_turns', 0),
-                            "total_content": total_content_length
+                            "total_content": total_content_length,
+                            "usage": getattr(message, 'usage', None)
                         }
 
                     else:
