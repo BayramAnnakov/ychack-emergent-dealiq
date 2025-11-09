@@ -564,61 +564,76 @@ async def get_task_result_metadata(task_id: str):
 @router.get("/file/{task_id}")
 async def get_file(task_id: str):
     """Serve the Excel or PDF file for browser preview (without forcing download)"""
+    import glob
     
-    # Look for PDF files FIRST (higher priority)
-    pdf_paths = [
+    # Look for PDF files FIRST (higher priority) - with timestamp support
+    pdf_patterns = [
+        f"data/gdpval/outputs/{task_id}_*_output.pdf",
         f"data/gdpval/outputs/{task_id}_output.pdf",
+        f"data/gdpval/deliverable_files/{task_id}_*_output.pdf",
         f"data/gdpval/deliverable_files/{task_id}_output.pdf",
+        f".claude/skills/pdf/{task_id}_*_output.pdf",
         f".claude/skills/pdf/{task_id}_output.pdf",
+        f"{task_id}_*_output.pdf",
         f"{task_id}_output.pdf"
     ]
     
     # Then look for Excel files
-    excel_paths = [
+    excel_patterns = [
+        f"data/gdpval/outputs/{task_id}_*_output.xlsx",
         f"data/gdpval/outputs/{task_id}_output.xlsx",
+        f"data/gdpval/deliverable_files/{task_id}_*_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
+        f"data/gdpval/reference_files/{task_id}_*_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_output.xlsx",
+        f".claude/skills/xlsx/{task_id}_*_output.xlsx",
         f".claude/skills/xlsx/{task_id}_output.xlsx",
+        f"{task_id}_*_output.xlsx",
         f"{task_id}_output.xlsx"
     ]
 
     file_path = None
     is_pdf = False
     
-    # Check PDF first
-    for path in pdf_paths:
-        if os.path.exists(path):
-            file_path = path
+    # Check PDF first (most recent)
+    for pattern in pdf_patterns:
+        matches = glob.glob(pattern)
+        if matches:
+            file_path = max(matches, key=os.path.getmtime)
             is_pdf = True
             break
     
     # Then check Excel
     if not file_path:
-        for path in excel_paths:
-            if os.path.exists(path):
-                file_path = path
+        for pattern in excel_patterns:
+            matches = glob.glob(pattern)
+            if matches:
+                file_path = max(matches, key=os.path.getmtime)
                 break
 
     if not file_path:
         raise HTTPException(status_code=404, detail="Output file not found")
+
+    # Extract actual filename
+    actual_filename = os.path.basename(file_path)
 
     # Return with appropriate media type
     if is_pdf:
         return FileResponse(
             file_path,
             media_type="application/pdf",
-            filename=f"{task_id}_output.pdf",
+            filename=actual_filename,
             headers={
-                "Content-Disposition": f'inline; filename="{task_id}_output.pdf"'
+                "Content-Disposition": f'inline; filename="{actual_filename}"'
             }
         )
     else:
         return FileResponse(
             file_path,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            filename=f"{task_id}_output.xlsx",
+            filename=actual_filename,
             headers={
-                "Content-Disposition": f'inline; filename="{task_id}_output.xlsx"'
+                "Content-Disposition": f'inline; filename="{actual_filename}"'
             }
         )
 
