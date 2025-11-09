@@ -88,116 +88,155 @@ function BenchmarkInterface({ onResultReady }) {
 
   return (
     <div className="space-y-4">
-      {/* Task Selector */}
-      <div className="card">
-        <h3 className="font-semibold text-gray-900 mb-3">Select Task</h3>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {tasks.map((task) => (
-            <div key={task.task_id} className="border-2 rounded-lg overflow-hidden">
-              <button
-                onClick={() => {
-                  setSelectedTask(task)
-                  setExpandedTask(expandedTask === task.task_id ? null : task.task_id)
-                }}
-                className={`w-full p-3 text-left transition-colors ${
-                  selectedTask?.task_id === task.task_id
-                    ? 'bg-blue-50 border-blue-500'
-                    : 'bg-white hover:bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
-                        selectedTask?.task_id === task.task_id
-                          ? 'border-blue-600 bg-blue-600'
-                          : 'border-gray-300'
-                      }`}>
-                        {selectedTask?.task_id === task.task_id && (
-                          <CheckCircle className="h-3 w-3 text-white" />
-                        )}
+      {!executing ? (
+        <>
+          {/* Task Selector */}
+          <div className="card">
+            <h3 className="font-semibold text-gray-900 mb-3">Select Task</h3>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {tasks.map((task) => (
+                <div key={task.task_id} className="border-2 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => {
+                      setSelectedTask(task)
+                      setExpandedTask(expandedTask === task.task_id ? null : task.task_id)
+                    }}
+                    className={`w-full p-3 text-left transition-colors ${
+                      selectedTask?.task_id === task.task_id
+                        ? 'bg-blue-50 border-blue-500'
+                        : 'bg-white hover:bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                            selectedTask?.task_id === task.task_id
+                              ? 'border-blue-600 bg-blue-600'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedTask?.task_id === task.task_id && (
+                              <CheckCircle className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {task.title || task.sector || 'Sales Task'}
+                            </p>
+                            {task.has_reference_files && (
+                              <span className="text-xs text-blue-600">Has reference files</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {task.title || task.sector || 'Sales Task'}
-                        </p>
-                        {task.has_reference_files && (
-                          <span className="text-xs text-blue-600">Has reference files</span>
-                        )}
-                      </div>
+                      {expandedTask === task.task_id ? (
+                        <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      )}
                     </div>
-                  </div>
-                  {expandedTask === task.task_id ? (
-                    <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                  )}
-                </div>
-              </button>
-              
-              {expandedTask === task.task_id && (
-                <div className="p-4 bg-gray-50 border-t border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Task Description:</h4>
-                  <div className="bg-white border border-gray-200 rounded p-3 mb-4">
-                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                      {task.full_prompt}
-                    </p>
-                  </div>
+                  </button>
                   
-                  {task.reference_file_urls && task.reference_file_urls.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3">Reference Files:</h4>
-                      <div className="space-y-4">
-                        {task.reference_file_urls.map((url, idx) => {
-                          const fileName = url.split('/').pop()
-                          return (
-                            <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
-                              <ReferenceFilePreview 
-                                fileUrl={url}
-                                fileName={fileName}
-                              />
-                            </div>
-                          )
-                        })}
+                  {expandedTask === task.task_id && (
+                    <div className="p-4 bg-gray-50 border-t border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Task Description:</h4>
+                      <div className="bg-white border border-gray-200 rounded p-3 mb-4">
+                        <p className="text-sm text-gray-700 whitespace-pre-line">
+                          {task.full_prompt}
+                        </p>
                       </div>
+                      
+                      {task.reference_file_urls && task.reference_file_urls.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3">Reference Files:</h4>
+                          <div className="space-y-4">
+                            {task.reference_file_urls.map((url, idx) => {
+                              const fileName = url.split('/').pop()
+                              return (
+                                <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
+                                  <ReferenceFilePreview 
+                                    fileUrl={url}
+                                    fileName={fileName}
+                                  />
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Execute Button */}
-      <div className="card">
-        {!executing ? (
-          <button
-            onClick={handleExecute}
-            disabled={!selectedTask}
-            className="btn btn-primary w-full flex items-center justify-center space-x-2 text-lg py-4"
-          >
-            <Play className="h-5 w-5" />
-            <span>Execute Selected Task</span>
-          </button>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Loader className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{status}</p>
-                <div className="mt-2 bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-blue-600 h-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{progress}% complete</p>
-              </div>
+              ))}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Execute Button */}
+          <div className="card">
+            <button
+              onClick={handleExecute}
+              disabled={!selectedTask}
+              className="btn btn-primary w-full flex items-center justify-center space-x-2 text-lg py-4"
+            >
+              <Play className="h-5 w-5" />
+              <span>Execute Selected Task</span>
+            </button>
+          </div>
+        </>
+      ) : (
+        /* Centered Progress Display */
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl p-8 max-w-2xl w-full mx-4">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {selectedTask?.title || 'Executing Task'}
+              </h2>
+              <p className="text-gray-600">
+                Claude is working on your professional report...
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 flex items-center justify-end"
+                  style={{ width: `${progress}%` }}
+                >
+                  <span className="text-white text-xs font-bold pr-2">
+                    {progress}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Messages */}
+            <div className="bg-gray-50 rounded-lg p-4 min-h-[120px] max-h-[300px] overflow-y-auto">
+              <div className="flex items-start space-x-2">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 mb-2">{status}</p>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <p>🤖 Using Claude Agent SDK with Skills</p>
+                    <p>📊 {selectedTask?.has_reference_files ? 'Analyzing reference data' : 'Generating from scratch'}</p>
+                    {progress > 50 && <p>✍️ Creating professional output with formulas</p>}
+                    {progress > 80 && <p>✅ Finalizing document...</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-center text-gray-500">
+                This may take 1-3 minutes depending on task complexity
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
