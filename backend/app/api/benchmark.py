@@ -96,7 +96,7 @@ async def execute_benchmark_task(task_id: str):
             output_files = []
             last_progress = 15
             
-            # Execute the task with streaming - just pass through Claude's messages
+            # Execute the task with streaming - properly parse Claude message types
             async for update in orchestrator.execute_gpteval_task_streaming(
                 task_description=task_description,
                 reference_file_paths=[reference_file],
@@ -105,9 +105,19 @@ async def execute_benchmark_task(task_id: str):
                 update_type = update.get("type", "")
                 
                 if update_type == "system":
-                    # System messages from Claude
+                    # System messages with metadata
                     subtype = update.get("subtype", "")
-                    message = f"⚙️ System: {subtype}"
+                    data = update.get("data", {})
+                    
+                    if subtype == "session_started":
+                        message = "🚀 Claude session started"
+                    elif subtype == "initialization_started":
+                        message = "⚙️ Initializing Claude Agent..."
+                    elif subtype == "initialization_complete":
+                        message = "✅ Claude Agent ready"
+                    else:
+                        message = f"⚙️ {subtype}"
+                    
                     last_progress = min(last_progress + 1, 85)
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
@@ -116,33 +126,65 @@ async def execute_benchmark_task(task_id: str):
                     pass
                     
                 elif update_type == "assistant":
-                    # Claude's response
-                    content = update.get("content", "")
+                    # Parse AssistantMessage content blocks
+                    content_blocks = update.get("content", "")
                     tool_uses = update.get("tool_uses", [])
+                    thinking = update.get("thinking", "")
                     
-                    if content.strip():
-                        # Show Claude's thinking/response
-                        snippet = content[:150] + "..." if len(content) > 150 else content
+                    # Show thinking if available (extended thinking models)
+                    if thinking and thinking.strip():
+                        snippet = thinking[:120] + "..." if len(thinking) > 120 else thinking
+                        message = f"🧠 Claude thinking: {snippet}"
+                        last_progress = min(last_progress + 1, 85)
+                        yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                    
+                    # Show text content
+                    if content_blocks and isinstance(content_blocks, str) and content_blocks.strip():
+                        snippet = content_blocks[:150] + "..." if len(content_blocks) > 150 else content_blocks
                         message = f"💬 Claude: {snippet}"
                         last_progress = min(last_progress + 2, 85)
                         yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
-                        output_text += content
+                        output_text += content_blocks
                     
+                    # Show tool usage with detailed context
                     if tool_uses:
-                        # Show tool usage
                         for tool in tool_uses:
                             tool_name = tool.get("name", "Unknown")
                             tool_input = tool.get("input", {})
-                            # Show what the tool is doing
+                            
                             if tool_name == "Read":
                                 file_path = tool_input.get("path", "")
-                                message = f"🔧 Reading: {os.path.basename(file_path) if file_path else 'file'}"
+                                if file_path:
+                                    file_name = os.path.basename(file_path)
+                                    message = f"📖 Reading: {file_name}"
+                                else:
+                                    message = "📖 Reading file..."
+                                    
                             elif tool_name == "Write":
                                 file_path = tool_input.get("path", "")
-                                message = f"✍️ Writing: {os.path.basename(file_path) if file_path else 'file'}"
+                                if file_path:
+                                    file_name = os.path.basename(file_path)
+                                    message = f"✍️ Writing: {file_name}"
+                                else:
+                                    message = "✍️ Writing file..."
+                                    
                             elif tool_name == "Bash":
-                                cmd = str(tool_input.get("command", ""))[:50]
-                                message = f"⚡ Running: {cmd}..."
+                                cmd = str(tool_input.get("command", ""))
+                                # Show meaningful part of command
+                                if "python" in cmd.lower():
+                                    message = "⚡ Running Python calculation..."
+                                elif "excel" in cmd.lower() or "xlsx" in cmd.lower():
+                                    message = "📊 Processing Excel data..."
+                                elif len(cmd) > 0:
+                                    cmd_preview = cmd[:60] + "..." if len(cmd) > 60 else cmd
+                                    message = f"⚡ Running: {cmd_preview}"
+                                else:
+                                    message = "⚡ Executing command..."
+                                    
+                            elif tool_name == "Glob":
+                                pattern = tool_input.get("pattern", "")
+                                message = f"🔍 Searching: {pattern}" if pattern else "🔍 Finding files..."
+                                
                             else:
                                 message = f"🔧 Using: {tool_name}"
                             
@@ -150,14 +192,28 @@ async def execute_benchmark_task(task_id: str):
                             yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "result":
-                    # Tool execution result
+                    # ToolResultBlock - show meaningful preview
                     result_content = update.get("content", "")
-                    # Show brief result preview
-                    if result_content:
-                        preview = str(result_content)[:80] + "..." if len(str(result_content)) > 80 else str(result_content)
-                        message = f"✅ Result: {preview}"
+                    is_error = update.get("is_error", False)
+                    
+                    if is_error:
+                        error_msg = str(result_content)[:100] if result_content else "Tool execution failed"
+                        message = f"⚠️ {error_msg}"
+                    elif result_content:
+                        # Parse result to show meaningful info
+                        result_str = str(result_content)
+                        if "rows" in result_str.lower() or "columns" in result_str.lower():
+                            message = "✅ Data loaded successfully"
+                        elif "created" in result_str.lower() or "written" in result_str.lower():
+                            message = "✅ File created"
+                        elif len(result_str) > 100:
+                            message = "✅ Operation completed"
+                        else:
+                            preview = result_str[:80] + "..." if len(result_str) > 80 else result_str
+                            message = f"✅ {preview}"
                     else:
-                        message = "✅ Tool completed"
+                        message = "✅ Completed"
+                    
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "error":
@@ -167,8 +223,20 @@ async def execute_benchmark_task(task_id: str):
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "complete":
-                    # Execution complete
-                    message = "✨ Claude analysis complete"
+                    # ResultMessage - show final stats
+                    duration_ms = update.get("duration_ms", 0)
+                    num_turns = update.get("num_turns", 0)
+                    total_cost = update.get("total_cost_usd", 0)
+                    
+                    if duration_ms and num_turns:
+                        duration_sec = duration_ms / 1000
+                        message = f"✨ Complete! ({num_turns} turns, {duration_sec:.1f}s"
+                        if total_cost:
+                            message += f", ${total_cost:.4f}"
+                        message += ")"
+                    else:
+                        message = "✨ Claude analysis complete"
+                    
                     last_progress = 90
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     break
