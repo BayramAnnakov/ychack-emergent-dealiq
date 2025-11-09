@@ -810,30 +810,22 @@ async def download_excel_result(task_id: str):
     """Download the generated Excel or PDF file for a task"""
     import glob
 
-    # Check for PDF files FIRST (higher priority) - with timestamp support
+    # Check ONLY timestamped files (exclude old non-timestamped files)
+    # PDF files first (higher priority)
     pdf_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.pdf",
-        f"data/gdpval/outputs/{task_id}_output.pdf",
         f"data/gdpval/deliverable_files/{task_id}_*_output.pdf",
-        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
         f".claude/skills/pdf/{task_id}_*_output.pdf",
-        f".claude/skills/pdf/{task_id}_output.pdf",
-        f"{task_id}_*_output.pdf",
-        f"{task_id}_output.pdf"
+        f"{task_id}_*_output.pdf"
     ]
     
-    # Then check Excel files
+    # Then Excel files
     excel_patterns = [
         f"data/gdpval/outputs/{task_id}_*_output.xlsx",
-        f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_*_output.xlsx",
-        f"data/gdpval/reference_files/{task_id}_output.xlsx",
         f".claude/skills/xlsx/{task_id}_*_output.xlsx",
-        f".claude/skills/xlsx/{task_id}_output.xlsx",
-        f"{task_id}_*_output.xlsx",
-        f"{task_id}_output.xlsx"
+        f"{task_id}_*_output.xlsx"
     ]
 
     file_path = None
