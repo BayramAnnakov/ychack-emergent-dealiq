@@ -169,11 +169,16 @@ async def get_task_history():
                 
                 task_titles[task_id] = title
                 
-                # Extract first paragraph (up to first double newline or 200 chars)
+                # Extract first paragraph for preview (truncated)
                 paragraphs = prompt.split('\n\n')
                 first_para = paragraphs[0] if paragraphs else prompt
-                description = first_para[:200] + "..." if len(first_para) > 200 else first_para
-                task_descriptions[task_id] = description
+                description_preview = first_para[:200] + "..." if len(first_para) > 200 else first_para
+                
+                # Store both preview and full description
+                task_descriptions[task_id] = {
+                    "preview": description_preview,
+                    "full": prompt  # Full task prompt, not truncated
+                }
     
     completed_tasks = []
     
