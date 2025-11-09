@@ -66,7 +66,8 @@ function ExcelPreview({ taskId, fileName }) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
         <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-3 animate-pulse" />
-        <p className="text-gray-600">Loading Excel preview...</p>
+        <p className="text-gray-600">Loading Excel preview for {taskId}...</p>
+        <p className="text-xs text-gray-500 mt-2">Check browser console for details</p>
       </div>
     )
   }
