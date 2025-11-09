@@ -104,6 +104,12 @@ function BenchmarkInterface({ onResultReady }) {
           setProgress(100)
           setStatus('Complete!')
           
+          // Mark all phases complete
+          setExecutionPhases(phases => phases.map(p => ({ ...p, status: 'complete' })))
+          
+          // Show confetti!
+          setShowConfetti(true)
+          
           // Dynamic success message based on file type
           const isPdf = result.file_name?.endsWith('.pdf')
           toast.success(isPdf ? 'PDF report generated successfully!' : 'Excel report generated successfully!')
@@ -116,7 +122,8 @@ function BenchmarkInterface({ onResultReady }) {
             setExecuting(false)
             setProgress(0)
             setStatus('')
-          }, 2000)
+            setShowConfetti(false)
+          }, 3000)
         },
         onError: (error) => {
           toast.error(error.message || 'Failed to execute task')
