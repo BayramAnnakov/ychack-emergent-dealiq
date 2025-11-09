@@ -96,6 +96,10 @@ function QueryInterface({ fileId, onQueryResult, isLoading, setIsLoading }) {
             toast.success(`Analysis complete! (${data.processing_time?.toFixed(1)}s)`)
             setStreamingStatus('')
             setStreamingProgress(100)
+            
+            setTimeout(() => {
+              setShowConfetti(false)
+            }, 3000)
           },
           onError: (data) => {
             toast.error(data.message || 'Failed to analyze query')
