@@ -143,7 +143,7 @@ async def predict_outcomes(
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/history")
