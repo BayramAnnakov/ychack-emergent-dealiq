@@ -205,5 +205,3 @@ async def get_analysis_detail(analysis_id: str):
         data = json.load(f)
     
     return data
-
-        raise HTTPException(status_code=500, detail=str(e))
