@@ -68,10 +68,12 @@ Format your responses with clear sections and bullet points.
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             model="sonnet",
-            max_turns=5,  # REDUCED for faster "Quick" analysis (was 15)
+            max_turns=8,  # Balanced for quick but thorough analysis
             permission_mode="default",
             cwd=backend_dir,
-            cli_path="/home/appuser/node_modules/.bin/claude"
+            cli_path="/home/appuser/node_modules/.bin/claude",
+            setting_sources=["user", "project"],  # Load settings for consistency
+            allowed_tools=["Read", "Bash"]  # Only need Read for data, Bash for analysis
         )
 
     async def analyze_streaming(
