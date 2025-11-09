@@ -157,7 +157,7 @@ function TaskHistory() {
       <div className="grid grid-cols-1 gap-4">
         {history.map((task) => (
           <div
-            key={task.task_id}
+            key={task.file_name}
             className="card hover:shadow-lg transition-shadow"
           >
             <div className="flex items-start justify-between">
