@@ -15,6 +15,8 @@ function BenchmarkInterface({ onResultReady }) {
   const [progressLog, setProgressLog] = useState([])
   const [activeSkills, setActiveSkills] = useState([])
   const [showConfetti, setShowConfetti] = useState(false)
+  const [completedTaskId, setCompletedTaskId] = useState(null)
+  const [qaScore, setQaScore] = useState(null)
   const [executionPhases, setExecutionPhases] = useState([
     { name: 'Initialize', status: 'pending', icon: '🚀' },
     { name: 'Analyze', status: 'pending', icon: '🔍' },
