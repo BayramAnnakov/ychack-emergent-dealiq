@@ -61,4 +61,7 @@ data/*.json
 
 # Claude Agent SDK
 .claude/cache/
-.claude/logs/
+.claude/logs/-e 
+# Environment files
+*.env
+*.env.*
