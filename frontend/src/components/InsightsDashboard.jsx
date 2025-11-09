@@ -8,9 +8,10 @@ import ExecutiveSummary from './ExecutiveSummary'
 import InsightsCharts from './InsightsCharts'
 import LoadingSkeleton from './LoadingSkeleton'
 
-function InsightsDashboard({ insights, isLoading }) {
+function InsightsDashboard({ insights, isLoading, analysisId }) {
   const [expandedInsights, setExpandedInsights] = useState({})
-  const [activeTab, setActiveTab] = useState('insights') // Default to insights-first
+  const [activeTab, setActiveTab] = useState('insights')
+  const [exportingPdf, setExportingPdf] = useState(false) // Default to insights-first
 
   if (isLoading) {
     return <LoadingSkeleton />
