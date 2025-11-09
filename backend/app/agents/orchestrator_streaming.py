@@ -46,8 +46,8 @@ Format your responses with clear sections and bullet points."""
         # Create options without subagents
         # Set cwd to backend directory (where data/uploads is located)
         # From: backend/app/agents/orchestrator_streaming.py
-        # Go up: ../../ to reach backend/
-        backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+        # Explicit path for Emergent environment with appuser
+        backend_dir = "/app/backend"  # Explicit path that appuser can access
 
         # Verify path
         if self.verbose:
@@ -57,8 +57,8 @@ Format your responses with clear sections and bullet points."""
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
-            max_turns=5,
-            permission_mode="bypassPermissions",  # Use valid permission mode
+            max_turns=15,  # Increased for comprehensive analysis
+            permission_mode="default",  # Works with non-root user (appuser)
             cwd=backend_dir  # Set to backend dir where data/uploads is
             # continue_conversation=True
         )
