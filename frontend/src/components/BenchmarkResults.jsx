@@ -28,8 +28,6 @@ function BenchmarkResults({ result }) {
 
   if (!result) return null
 
-  const taskId = result.task_id || result.taskId
-
   const handleDownload = () => {
     // Trigger Excel file download using service
     downloadExcelResult(taskId)
