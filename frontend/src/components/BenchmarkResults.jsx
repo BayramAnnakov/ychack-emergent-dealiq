@@ -286,6 +286,7 @@ function BenchmarkResults({ result }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* GDPval Badge */}
       <div className="card bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
