@@ -122,14 +122,13 @@ function ExcelPreview({ taskId, fileName }) {
               <ExternalLink className="h-4 w-4" />
               <span>Open in Sheets</span>
             </button>
-            <a
-              href={`/api/v1/benchmark/download/${taskId}`}
-              download
+            <button
+              onClick={handleDownload}
               className="btn btn-sm btn-primary flex items-center space-x-1"
             >
               <Download className="h-4 w-4" />
               <span>Download</span>
-            </a>
+            </button>
           </div>
         </div>
       </div>
