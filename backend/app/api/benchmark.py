@@ -551,10 +551,11 @@ async def get_validation_report(task_id: str):
 async def serve_reference_file(url: str):
     """
     Proxy endpoint to serve reference files for Google Sheets import
-    Accepts either HuggingFace URLs or downloads and serves them
+    Downloads from HuggingFace and serves with proper headers
     """
     import httpx
     from urllib.parse import unquote
+    from fastapi.responses import Response
     
     try:
         # Download file from HuggingFace
@@ -567,14 +568,13 @@ async def serve_reference_file(url: str):
             filename = unquote(filename)
             
             # Return file with proper headers for Google Sheets
-            return FileResponse(
-                path=None,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                filename=filename,
+            return Response(
                 content=response.content,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 headers={
                     "Content-Disposition": f'attachment; filename="{filename}"',
-                    "Access-Control-Allow-Origin": "*"
+                    "Access-Control-Allow-Origin": "*",
+                    "Content-Length": str(len(response.content))
                 }
             )
     except Exception as e:
