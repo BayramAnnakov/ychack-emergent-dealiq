@@ -96,7 +96,7 @@ async def execute_benchmark_task(task_id: str):
             async for update in orchestrator.execute_gpteval_task_streaming(
                 task_description=task_description,
                 reference_file_paths=[reference_file],
-                output_file_name=f"{task_id}_output.xlsx"
+                output_filename=f"{task_id}_output.xlsx"
             ):
                 update_type = update.get("type", "")
                 
