@@ -586,8 +586,28 @@ async def execute_benchmark_task(task_id: str):
             }
             yield f"data: {json.dumps(error_result)}\n\n"
 
+    async def event_generator_wrapper():
+        """Wrapper to suppress asyncio cleanup errors"""
+        try:
+            async for event in event_generator():
+                yield event
+        except asyncio.CancelledError:
+            # Normal cancellation, suppress
+            pass
+        except Exception as e:
+            # Check if it's the asyncio scope error
+            error_msg = str(e)
+            if "cancel scope" in error_msg.lower() or "different task" in error_msg.lower():
+                # This is the cleanup error - suppress it
+                # File is already complete and saved
+                import logging
+                logging.info(f"Suppressed cleanup error: {error_msg}")
+            else:
+                # Other errors should still be reported
+                yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+
     return StreamingResponse(
-        event_generator(),
+        event_generator_wrapper(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
