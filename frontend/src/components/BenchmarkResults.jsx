@@ -67,12 +67,30 @@ function BenchmarkResults({ result }) {
             <h2 className="text-lg font-bold text-gray-900">
               {isPdfFile ? 'PDF Report Generated Successfully!' : 'Excel Report Generated Successfully!'}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {isPdfFile 
-                ? 'Professional document created with Claude Agent SDK'
-                : `Professional sales analysis with ${result.formulaCount || 0} Excel formulas • ${result.sections || 0} sections • ${result.errors || 0} errors`
-              }
-            </p>
+            <div className="flex items-center space-x-3 mt-1">
+              <p className="text-sm text-gray-600">
+                {isPdfFile 
+                  ? 'Professional document created with Claude Agent SDK'
+                  : `Professional sales analysis with ${result.formulaCount || 0} Excel formulas • ${result.sections || 0} sections • ${result.errors || 0} errors`
+                }
+              </p>
+              {validation && !validationLoading && (
+                <button
+                  onClick={() => setShowValidationModal(true)}
+                  className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                    validation.quality_score >= 90 
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                      : validation.quality_score >= 70
+                      ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                >
+                  <Shield className="h-3 w-3" />
+                  <span>QA: {validation.quality_score}/100</span>
+                  {validation.critical_issues > 0 && <span>• {validation.critical_issues} issues</span>}
+                </button>
+              )}
+            </div>
           </div>
           <button
             onClick={handleDownload}
