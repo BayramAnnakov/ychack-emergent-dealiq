@@ -59,6 +59,16 @@ async def upload_csv(file: UploadFile = File(...)):
         # Get basic statistics
         processor = DataProcessor()
         stats = processor.get_basic_stats(df)
+        
+        # Detect CRM schema and calculate pipeline metrics
+        schema = processor.detect_crm_schema(df)
+        if schema:
+            # Clean data based on detected schema
+            df_clean = processor.clean_data(df, schema)
+            # Calculate pipeline-specific metrics
+            pipeline_metrics = processor.calculate_pipeline_metrics(df_clean, schema)
+            # Merge pipeline metrics into stats
+            stats.update(pipeline_metrics)
 
         return {
             "file_id": file_id,
