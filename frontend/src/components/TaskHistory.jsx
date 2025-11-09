@@ -10,6 +10,7 @@ function TaskHistory() {
   const [selectedTask, setSelectedTask] = useState(null)
   const [showPreview, setShowPreview] = useState(false)
   const [expandedDescriptions, setExpandedDescriptions] = useState({})
+  const [qaScores, setQaScores] = useState({})
 
   useEffect(() => {
     loadHistory()
