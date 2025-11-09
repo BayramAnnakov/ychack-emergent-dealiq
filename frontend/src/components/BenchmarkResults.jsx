@@ -179,6 +179,16 @@ function BenchmarkResults({ result }) {
         )}
       </div>
 
+      {/* Excel Preview */}
+      {showPreview && fileMetadata && (
+        <div className="mt-6">
+          <ExcelPreview 
+            taskId={taskId} 
+            fileName={fileMetadata.file_name}
+          />
+        </div>
+      )}
+
       {/* Analysis Summary */}
       <div className="card">
         <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
