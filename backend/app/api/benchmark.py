@@ -571,9 +571,7 @@ async def execute_benchmark_task(task_id: str):
                 "output_text": output_text[:500] if output_text else "Analysis complete",
                 "files_created": len(output_files),
                 "errors": 0,
-                "progress": 100,
-                "cost_usd": total_cost,
-                "tokens": tokens_used
+                "progress": 100
             }
             yield f"data: {json.dumps(result)}\n\n"
             
