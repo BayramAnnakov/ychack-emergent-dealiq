@@ -156,9 +156,32 @@ function TaskHistory() {
                     {task.task_title || task.file_name}
                   </h3>
                   {task.task_description && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                      {task.task_description}
-                    </p>
+                    <div className="mt-1">
+                      <p className={`text-sm text-gray-600 ${expandedDescriptions[task.task_id] ? '' : 'line-clamp-2'}`}>
+                        {task.task_description}
+                      </p>
+                      {task.task_description.length > 100 && (
+                        <button
+                          onClick={() => setExpandedDescriptions(prev => ({
+                            ...prev,
+                            [task.task_id]: !prev[task.task_id]
+                          }))}
+                          className="text-xs text-blue-600 hover:text-blue-800 mt-1 flex items-center space-x-1"
+                        >
+                          {expandedDescriptions[task.task_id] ? (
+                            <>
+                              <ChevronUp className="h-3 w-3" />
+                              <span>Show less</span>
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-3 w-3" />
+                              <span>Show more</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
                     {task.file_name}
