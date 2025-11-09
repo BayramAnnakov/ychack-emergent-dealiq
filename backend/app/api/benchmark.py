@@ -505,9 +505,7 @@ async def execute_benchmark_task(task_id: str):
                                 'progress': last_progress, 
                                 'detail': detail, 
                                 'tool': tool_name,
-                                'active_skills': list(active_skills),
-                                'cost_usd': total_cost,
-                                'tokens': tokens_used
+                                'active_skills': list(active_skills)
                             }
                             yield f"data: {json.dumps(progress_data)}\n\n"
                     
