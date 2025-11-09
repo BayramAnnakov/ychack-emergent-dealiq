@@ -89,6 +89,43 @@ function InsightsDashboard({ insights, isLoading, analysisId }) {
     { id: 'metrics', label: 'Metrics & Charts', icon: BarChart3 },
     { id: 'all', label: 'Full Analysis', icon: Lightbulb }
   ]
+  
+  const handleExportPdf = async () => {
+    if (!analysisId) {
+      toast.error('No analysis ID available for export')
+      return
+    }
+    
+    setExportingPdf(true)
+    toast.loading('Generating PDF report with Claude...', { id: 'pdf-export' })
+    
+    try {
+      const response = await fetch(`/api/v1/insights/export-pdf/${analysisId}`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        throw new Error('PDF generation failed')
+      }
+      
+      const result = await response.json()
+      
+      toast.success('PDF report generated!', { id: 'pdf-export' })
+      
+      // Download the PDF
+      const downloadUrl = `/api/v1/insights/download-pdf/${analysisId}`
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = result.pdf_filename
+      link.click()
+      
+    } catch (error) {
+      toast.error('Failed to generate PDF', { id: 'pdf-export' })
+      console.error('PDF export error:', error)
+    } finally {
+      setExportingPdf(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
