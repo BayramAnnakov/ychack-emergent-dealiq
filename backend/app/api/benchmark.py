@@ -534,23 +534,16 @@ async def execute_benchmark_task(task_id: str):
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "complete":
-                    # ResultMessage - extract cost and usage data
+                    # ResultMessage - extract final stats
                     duration_ms = update.get("duration_ms", 0)
                     num_turns = update.get("num_turns", 0)
-                    total_cost = update.get("total_cost_usd", 0) or 0
-                    usage = update.get("usage", {})
-                    
-                    # Extract token information
-                    if usage:
-                        input_tokens = usage.get("input_tokens", 0)
-                        output_tokens = usage.get("output_tokens", 0)
-                        tokens_used = input_tokens + output_tokens
+                    total_cost_usd = update.get("total_cost_usd", 0) or 0
                     
                     if duration_ms and num_turns:
                         duration_sec = duration_ms / 1000
                         message = f"✨ Complete! ({num_turns} turns, {duration_sec:.1f}s"
-                        if total_cost:
-                            message += f", ${total_cost:.4f}"
+                        if total_cost_usd:
+                            message += f", ${total_cost_usd:.4f}"
                         message += ")"
                     else:
                         message = "✨ Claude analysis complete"
@@ -558,13 +551,7 @@ async def execute_benchmark_task(task_id: str):
                     last_progress = 98
                     complete_data = {
                         'status': message, 
-                        'progress': last_progress,
-                        'cost_usd': total_cost,
-                        'tokens': tokens_used,
-                        'input_tokens': usage.get("input_tokens", 0) if usage else 0,
-                        'output_tokens': usage.get("output_tokens", 0) if usage else 0,
-                        'duration_ms': duration_ms,
-                        'num_turns': num_turns
+                        'progress': last_progress
                     }
                     yield f"data: {json.dumps(complete_data)}\n\n"
                     break
