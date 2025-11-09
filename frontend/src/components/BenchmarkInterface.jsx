@@ -13,8 +13,6 @@ function BenchmarkInterface({ onResultReady }) {
   const [loading, setLoading] = useState(true)
   const [expandedTask, setExpandedTask] = useState(null)
   const [progressLog, setProgressLog] = useState([])
-  const [costUsd, setCostUsd] = useState(0)
-  const [tokensUsed, setTokensUsed] = useState(0)
   const [activeSkills, setActiveSkills] = useState([])
   const [showConfetti, setShowConfetti] = useState(false)
   const [executionPhases, setExecutionPhases] = useState([
