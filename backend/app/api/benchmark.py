@@ -377,7 +377,7 @@ async def execute_benchmark_task(task_id: str):
                         snippet = content_blocks[:180] + "..." if len(content_blocks) > 180 else content_blocks
                         message = f"💬 {snippet}"
                         last_progress = min(last_progress + 3, 95)
-                        yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': 'claude_response', 'cost_usd': total_cost, 'tokens': tokens_used})}\n\n"
+                        yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': 'claude_response'})}\n\n"
                         output_text += content_blocks
                     
                     # Show tool usage with detailed context
