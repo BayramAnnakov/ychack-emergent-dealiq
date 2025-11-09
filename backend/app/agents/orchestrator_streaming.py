@@ -188,30 +188,13 @@ Format your responses with clear sections and bullet points."""
 
                         total_content_length += len(content)
 
-                        # DEBUG: Check what attributes the message actually has
-                        print(f"DEBUG ORCHESTRATOR: AssistantMessage attributes: {dir(message)}")
-                        
-                        # Extract usage if available
-                        message_usage = None
-                        message_id = None
-                        
-                        if hasattr(message, 'usage'):
-                            message_usage = message.usage
-                            print(f"DEBUG ORCHESTRATOR: Found usage attribute: {message_usage}")
-                        
-                        if hasattr(message, 'id'):
-                            message_id = message.id
-                            print(f"DEBUG ORCHESTRATOR: Found id attribute: {message_id}")
-
-                        # Yield the message with usage data
+                        # Yield the message
                         yield {
                             "type": "assistant",
                             "content": content,
                             "tool_uses": tool_uses,
                             "message_number": message_count,
-                            "timestamp": current_time,
-                            "id": message_id,
-                            "usage": message_usage
+                            "timestamp": current_time
                         }
 
                     elif isinstance(message, ResultMessage):
