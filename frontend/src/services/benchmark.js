@@ -65,13 +65,21 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
                   fileName: data.file_name,
                   formulaCount: data.formula_count,
                   sections: data.sections,
-                  errors: data.errors
+                  errors: data.errors,
+                  costUsd: data.cost_usd,
+                  tokens: data.tokens
                 })
               }
             } else {
-              // Progress update
+              // Progress update with enhanced data
               if (onProgress) {
-                onProgress(data.status, data.progress)
+                onProgress(data.status, data.progress, {
+                  activeSkills: data.active_skills,
+                  costUsd: data.cost_usd,
+                  tokens: data.tokens,
+                  tool: data.tool,
+                  detail: data.detail
+                })
               }
             }
           } catch (e) {
