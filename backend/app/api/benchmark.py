@@ -265,7 +265,11 @@ async def execute_benchmark_task(task_id: str):
             # Determine output format based on task description
             is_pdf_task = "pdf" in task_description.lower() and "create a pdf" in task_description.lower()
             output_extension = ".pdf" if is_pdf_task else ".xlsx"
-            output_filename = f"{task_id}_output{output_extension}"
+            
+            # Add timestamp to filename to avoid overwrites
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_filename = f"{task_id}_{timestamp}_output{output_extension}"
             
             # Get reference files
             reference_file_urls = selected_task.get("reference_file_urls", [])
