@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Send, Sparkles, TrendingUp, Target, Users } from 'lucide-react'
+import { Send, Sparkles, TrendingUp, Target, Users, Loader } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { analyzeData, predictOutcomes, testHypothesis, analyzeDataStreaming } from '../services/api'
 
