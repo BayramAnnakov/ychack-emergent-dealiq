@@ -120,10 +120,17 @@ function TaskHistory() {
               </button>
             </div>
             <div className="p-6">
-              <ExcelPreview 
-                taskId={selectedTask.task_id}
-                fileName={selectedTask.file_name}
-              />
+              {selectedTask.file_type === 'pdf' ? (
+                <PdfPreview 
+                  taskId={selectedTask.task_id}
+                  fileName={selectedTask.file_name}
+                />
+              ) : (
+                <ExcelPreview 
+                  taskId={selectedTask.task_id}
+                  fileName={selectedTask.file_name}
+                />
+              )}
             </div>
           </div>
         </div>
