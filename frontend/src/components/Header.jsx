@@ -1,7 +1,8 @@
 import React from 'react'
 import { Brain, TrendingUp } from 'lucide-react'
+import ModeSelector from './ModeSelector'
 
-function Header() {
+function Header({ mode, onModeChange }) {
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 py-4">
@@ -16,7 +17,9 @@ function Header() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
+            <ModeSelector mode={mode} onModeChange={onModeChange} />
+
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <TrendingUp className="h-4 w-4" />
               <span>AI-Powered CRM Intelligence</span>
