@@ -18,6 +18,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [benchmarkResult, setBenchmarkResult] = useState(null)
   const [benchmarkTab, setBenchmarkTab] = useState('execute') // 'execute' or 'history'
+  const [crmTab, setCrmTab] = useState('analyze') // 'analyze' or 'history'
 
   const handleFileUpload = (fileData) => {
     setUploadedFile(fileData)
