@@ -315,38 +315,6 @@ function BenchmarkResults({ result }) {
         </div>
       )}
 
-      {/* Analysis Summary - Only for Excel files with hardcoded highlights */}
-      {!isPdfFile && (
-        <div className="card">
-          <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-            <Award className="h-5 w-5 text-yellow-500 mr-2" />
-            Analysis Highlights
-          </h3>
-        <div className="space-y-3 text-sm text-gray-700">
-          <div className="flex items-start space-x-2">
-            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-            <p><strong>Overall Performance:</strong> -3.0% YoY decline ($623.5K loss) identified with detailed breakdown</p>
-          </div>
-          <div className="flex items-start space-x-2">
-            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-            <p><strong>Critical Risk:</strong> $3.6M (17.6%) revenue from discontinued SKUs flagged for immediate action</p>
-          </div>
-          <div className="flex items-start space-x-2">
-            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-            <p><strong>Top Category:</strong> Mascaras Washable identified as largest contributor ($6.0M, 29.7% of total)</p>
-          </div>
-          <div className="flex items-start space-x-2">
-            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-            <p><strong>Growth Leader:</strong> Liquid Eyeliners showing exceptional growth (+112.6%)</p>
-          </div>
-          <div className="flex items-start space-x-2">
-            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-            <p><strong>Strategic Recommendations:</strong> 15 prioritized actions across 3 urgency levels</p>
-          </div>
-        </div>
-      </div>
-      )}
-
       {/* GDPval Badge */}
       <div className="card bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
         <div className="flex items-center justify-between">
