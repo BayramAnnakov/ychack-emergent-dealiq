@@ -118,12 +118,8 @@ function BenchmarkInterface({ onResultReady }) {
             onResultReady(result)
           }
 
-          setTimeout(() => {
-            setExecuting(false)
-            setProgress(0)
-            setStatus('')
-            setShowConfetti(false)
-          }, 3000)
+          // Don't auto-close - user closes manually with X button
+          // setTimeout removed - modal stays open for user to review
         },
         onError: (error) => {
           toast.error(error.message || 'Failed to execute task')
