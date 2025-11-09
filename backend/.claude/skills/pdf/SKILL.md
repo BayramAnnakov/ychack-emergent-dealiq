@@ -10,6 +10,115 @@ license: Proprietary. LICENSE.txt has complete terms
 
 This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see reference.md. If you need to fill out a PDF form, read forms.md and follow its instructions.
 
+## CRITICAL: PDF Document Formatting Best Practices
+
+### Prevent Text Overlap and Formatting Issues
+
+When creating PDFs with reportlab or other libraries, **ALWAYS** follow these rules:
+
+#### Table Formatting (MOST CRITICAL)
+1. **Calculate column widths properly** - Never use fixed widths that are too small
+   ```python
+   # ❌ WRONG - Fixed narrow widths cause text overlap
+   col_widths = [100, 100, 100]  
+   
+   # ✅ CORRECT - Calculate based on content or use proportional widths
+   from reportlab.lib.units import inch
+   col_widths = [2*inch, 1.5*inch, 1*inch, 1.5*inch]  # Adequate space
+   
+   # ✅ BETTER - Calculate based on page width
+   from reportlab.lib.pagesizes import letter
+   page_width = letter[0] - 100  # Subtract margins
+   col_widths = [page_width * 0.3, page_width * 0.25, page_width * 0.2, page_width * 0.25]
+   ```
+
+2. **Use auto-sizing tables when possible**
+   ```python
+   from reportlab.platypus import Table, TableStyle
+   
+   # Let reportlab calculate optimal widths
+   t = Table(data)  # No colWidths specified - auto-sized
+   
+   # Or specify minimum widths with '*' for flexible columns
+   t = Table(data, colWidths=[2*inch, '*', '*', 1.5*inch])
+   ```
+
+3. **Wrap text in cells** - Prevent overflow
+   ```python
+   from reportlab.platypus import Paragraph
+   from reportlab.lib.styles import getSampleStyleSheet
+   
+   styles = getSampleStyleSheet()
+   
+   # Wrap long text in Paragraph objects
+   data = [
+       [Paragraph("Long header text that wraps", styles['Normal']),
+        Paragraph("Another long text", styles['Normal'])]
+   ]
+   ```
+
+4. **Test with actual content lengths** - Use real data to size columns
+   ```python
+   # Calculate max width needed for each column
+   max_widths = []
+   for col_idx in range(len(data[0])):
+       max_len = max(len(str(row[col_idx])) for row in data)
+       max_widths.append(max_len * 6 + 10)  # 6 pts per char + padding
+   ```
+
+5. **Set proper table styles** to prevent overlap
+   ```python
+   table_style = TableStyle([
+       ('FONTSIZE', (0, 0), (-1, -1), 9),  # Reduce font if needed
+       ('WORDWRAP', (0, 0), (-1, -1)),     # Enable word wrap
+       ('VALIGN', (0, 0), (-1, -1), 'TOP'), # Top alignment
+       ('PADDING', (0, 0), (-1, -1), 6),    # Adequate padding
+       ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+   ])
+   ```
+
+#### Page Layout
+1. **Use adequate margins** - Never less than 0.5 inches
+   ```python
+   from reportlab.lib.units import inch
+   doc = SimpleDocTemplate(
+       filename,
+       pagesize=letter,
+       topMargin=0.75*inch,
+       bottomMargin=0.75*inch,
+       leftMargin=0.75*inch,
+       rightMargin=0.75*inch
+   )
+   ```
+
+2. **Break long tables** across pages properly
+   ```python
+   t = Table(data, repeatRows=1)  # Repeat header on each page
+   t.hAlign = 'LEFT'
+   ```
+
+3. **Check available width** before creating tables
+   ```python
+   from reportlab.lib.pagesizes import letter
+   page_width, page_height = letter
+   available_width = page_width - (2 * 0.75 * inch)  # Subtract margins
+   ```
+
+#### Font and Text
+1. **Choose readable font sizes** - Minimum 9pt for body text
+2. **Use proper line spacing** - At least 1.2x font size
+3. **Test text wrapping** - Ensure no text is cut off
+
+#### Common Pitfalls to AVOID
+- ❌ Fixed column widths without testing content length
+- ❌ Tables wider than page width
+- ❌ Font sizes too large for table cells
+- ❌ No padding in table cells
+- ❌ Missing word wrap settings
+- ❌ Hardcoded positions without margin calculations
+
+
+
 ## Quick Start
 
 ```python
