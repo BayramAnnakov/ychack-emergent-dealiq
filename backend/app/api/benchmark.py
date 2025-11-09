@@ -384,7 +384,7 @@ async def execute_benchmark_task(task_id: str):
                         snippet = thinking[:150] + "..." if len(thinking) > 150 else thinking
                         message = f"🧠 Thinking: {snippet}"
                         last_progress = min(last_progress + 1, 85)
-                        yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': 'extended_thinking', 'cost_usd': estimated_cost, 'tokens': estimated_tokens})}\n\n"
+                        yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': 'extended_thinking', 'cost_usd': total_cost, 'tokens': tokens_used})}\n\n"
                     
                     # Show text content
                     if content_blocks and isinstance(content_blocks, str) and content_blocks.strip():
