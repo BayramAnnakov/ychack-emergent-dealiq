@@ -50,6 +50,27 @@ async def list_benchmark_tasks():
         with open(tasks_file, 'r') as f:
             all_tasks = json.load(f)
         
+        # Generate meaningful titles from prompts
+        def generate_title_from_prompt(prompt):
+            """Extract a meaningful title from the task prompt"""
+            prompt_lower = prompt.lower()
+            
+            # Pattern matching to extract key topics
+            if "automotive" in prompt_lower and "parts" in prompt_lower:
+                return "Automotive Parts Check-In Procedure"
+            elif "beutist" in prompt_lower and "set" in prompt_lower:
+                return "Beutist Set Inventory Analysis"
+            elif "xr retailer" in prompt_lower and "makeup" in prompt_lower:
+                return "XR Retailer Makeup Sales Analysis"
+            elif "alcoholic beverages" in prompt_lower or "inventory" in prompt_lower and "stockout" in prompt_lower:
+                return "Beverage Inventory Stockout Prevention"
+            elif "fragrance" in prompt_lower and "pricing" in prompt_lower:
+                return "Men's Fragrance Competitive Pricing"
+            else:
+                # Fallback: extract first meaningful sentence
+                first_sentence = prompt.split('.')[0][:60]
+                return first_sentence + "..." if len(first_sentence) >= 60 else first_sentence
+        
         # Return tasks with useful metadata
         formatted_tasks = []
         for task in all_tasks:
@@ -59,6 +80,7 @@ async def list_benchmark_tasks():
             
             formatted_tasks.append({
                 "task_id": task.get("task_id"),
+                "title": generate_title_from_prompt(prompt),
                 "sector": task.get("sector", ""),
                 "occupation": task.get("occupation", ""),
                 "description": description,
