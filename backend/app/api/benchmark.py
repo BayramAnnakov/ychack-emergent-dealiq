@@ -202,26 +202,50 @@ async def execute_benchmark_task(task_id: str):
             yield f"data: {json.dumps({'status': 'Initializing Claude...', 'progress': 5})}\n\n"
             await asyncio.sleep(0.5)
             
-            # Task details - for now we have one hardcoded task
-            task_description = """
-            Analyze the XR Retailer 2023 Makeup Sales data and create a comprehensive Excel report with:
+            # Load the actual task data from JSON based on task_id
+            tasks_file = "data/gdpval/sales_reps/sales_reps_tasks.json"
             
-            1. Overall Business Performance (YoY comparison)
-            2. Discontinued SKUs Risk Analysis 
-            3. Top Volume Drivers Analysis
-            4. Volume Increases & Decreases
-            5. Strategic Recommendations
+            if not os.path.exists(tasks_file):
+                raise HTTPException(status_code=404, detail="Tasks file not found")
             
-            Use formulas for all calculations. Format professionally with clear sections.
-            """
+            # Load all tasks
+            with open(tasks_file, 'r') as f:
+                all_tasks = json.load(f)
             
-            # Reference file path
-            reference_file = f"/app/backend/data/gdpval/reference_files/DATA_XR_MU_2023.xlsx"
+            # Find the selected task
+            selected_task = None
+            for task in all_tasks:
+                if task.get("task_id") == task_id:
+                    selected_task = task
+                    break
             
-            if not os.path.exists(reference_file):
-                raise HTTPException(status_code=404, detail=f"Reference file not found: {reference_file}")
+            if not selected_task:
+                raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
             
-            yield f"data: {json.dumps({'status': 'Loading reference data...', 'progress': 10})}\n\n"
+            # Get task description (prompt)
+            task_description = selected_task.get("prompt", "")
+            
+            # Get reference files
+            reference_file_urls = selected_task.get("reference_file_urls", [])
+            reference_file_paths = []
+            
+            # Download reference files if they're from HuggingFace
+            for url in reference_file_urls:
+                # Map HuggingFace URLs to local files
+                local_file = None
+                if "7aef029e58a67b9ce3b8fd6110d8160b" in url:
+                    local_file = "/app/backend/data/gdpval/reference_files/DATA-Beutist_Set_Selling-v2.xlsx"
+                elif "83cd6e2233b76f20b6a6643217f9ebb3" in url:
+                    local_file = "/app/backend/data/gdpval/reference_files/DATA_XR_MU_2023_Final.xlsx"
+                elif "915c72afa404c96174d69e03b74c6454" in url:
+                    local_file = "/app/backend/data/gdpval/reference_files/Inventory_and_Shipments_Latest.xlsx"
+                elif "062f057c961cefe89513e32097df802b" in url:
+                    local_file = "/app/backend/data/gdpval/reference_files/Current_Product_Price_List.xlsx"
+                
+                if local_file and os.path.exists(local_file):
+                    reference_file_paths.append(local_file)
+            
+            yield f"data: {json.dumps({'status': 'Loading task data...', 'progress': 10})}\n\n"
             await asyncio.sleep(0.5)
             
             # Create orchestrator
