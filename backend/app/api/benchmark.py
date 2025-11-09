@@ -28,21 +28,50 @@ class BenchmarkTask(BaseModel):
 
 @router.get("/tasks")
 async def list_benchmark_tasks():
-    """List available benchmark tasks"""
+    """List available benchmark tasks from sales_reps_tasks.json"""
     
-    # For now, return a static list of GDPval sales tasks
-    # In production, this would query the database or file system
-    tasks = [
-        {
-            "id": "19403010-3e5c-494e-a6d3-13594e99f6af",
-            "name": "XR Retailer 2023 Makeup Sales Analysis",
-            "description": "Analyze sales data and create comprehensive Excel report with YoY comparison",
-            "difficulty": "Medium",
-            "estimated_time": "60-90 seconds"
-        }
-    ]
+    tasks_file = "data/gdpval/sales_reps/sales_reps_tasks.json"
     
-    return {"tasks": tasks}
+    if not os.path.exists(tasks_file):
+        # Fallback to static task
+        tasks = [
+            {
+                "task_id": "19403010-3e5c-494e-a6d3-13594e99f6af",
+                "sector": "Wholesale Trade",
+                "occupation": "Sales Representatives",
+                "prompt": "XR Retailer 2023 Makeup Sales Analysis",
+                "reference_files": [],
+                "reference_file_urls": []
+            }
+        ]
+        return {"tasks": tasks, "total": 1}
+    
+    try:
+        with open(tasks_file, 'r') as f:
+            all_tasks = json.load(f)
+        
+        # Return tasks with useful metadata
+        formatted_tasks = []
+        for task in all_tasks:
+            # Extract short description from prompt
+            prompt = task.get("prompt", "")
+            description = prompt[:200] + "..." if len(prompt) > 200 else prompt
+            
+            formatted_tasks.append({
+                "task_id": task.get("task_id"),
+                "sector": task.get("sector", ""),
+                "occupation": task.get("occupation", ""),
+                "description": description,
+                "full_prompt": prompt,
+                "reference_files": task.get("reference_files", []),
+                "reference_file_urls": task.get("reference_file_urls", []),
+                "has_reference_files": len(task.get("reference_files", [])) > 0
+            })
+        
+        return {"tasks": formatted_tasks, "total": len(formatted_tasks)}
+    except Exception as e:
+        print(f"Error loading tasks: {e}")
+        return {"tasks": [], "total": 0, "error": str(e)}
 
 
 @router.get("/history")
