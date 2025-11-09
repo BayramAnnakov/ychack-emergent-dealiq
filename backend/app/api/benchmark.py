@@ -180,8 +180,23 @@ async def get_task_history():
                 seen_files.add(filename)
                 file_path = os.path.join(search_path, filename)
                 
-                # Extract task ID from filename
-                task_id = filename.replace("_output.xlsx", "").replace("_output.pdf", "")
+                # Extract task ID from filename (handle both old and new format)
+                # New format: task_id_timestamp_output.ext
+                # Old format: task_id_output.ext
+                if "_output." in filename:
+                    # Remove _output.xlsx or _output.pdf
+                    base_name = filename.replace("_output.xlsx", "").replace("_output.pdf", "")
+                    # Check if it has timestamp (format: UUID_YYYYMMDD_HHMMSS)
+                    parts = base_name.split("_")
+                    if len(parts) >= 7:  # UUID has 5 parts + timestamp has 2 parts
+                        # Has timestamp, extract task_id (first 5 parts of UUID)
+                        task_id = "_".join(parts[:5])
+                    else:
+                        # No timestamp, entire base_name is task_id
+                        task_id = base_name
+                else:
+                    continue
+                    
                 is_pdf = filename.endswith(".pdf")
                 
                 try:
