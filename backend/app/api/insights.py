@@ -191,8 +191,6 @@ async def get_analysis_history():
 @router.get("/history/{analysis_id}")
 async def get_analysis_detail(analysis_id: str):
     """Get full details of a saved analysis"""
-    import os
-    import json
     
     file_path = f"data/crm_analyses/{analysis_id}_analysis.json"
     
