@@ -344,6 +344,14 @@ function BenchmarkResults({ result }) {
           </button>
         </div>
       </div>
+      
+      {/* QA Validation Modal */}
+      {showValidationModal && validation && (
+        <QAValidationModal 
+          validation={validation}
+          onClose={() => setShowValidationModal(false)}
+        />
+      )}
     </div>
   )
 }
