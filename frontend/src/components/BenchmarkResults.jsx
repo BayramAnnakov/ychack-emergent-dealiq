@@ -38,6 +38,8 @@ function BenchmarkResults({ result }) {
     window.open('https://huggingface.co/datasets/Bayram/gpdval_1', '_blank')
   }
 
+  const isPdfFile = result?.file_name?.endsWith('.pdf') || false
+
   return (
     <div className="space-y-6">
       {/* Success Banner */}
@@ -47,9 +49,14 @@ function BenchmarkResults({ result }) {
             <CheckCircle className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-bold text-gray-900">Excel Report Generated Successfully!</h2>
+            <h2 className="text-lg font-bold text-gray-900">
+              {isPdfFile ? 'PDF Report Generated Successfully!' : 'Excel Report Generated Successfully!'}
+            </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Professional sales analysis with {result.formulaCount} Excel formulas • {result.sections} sections • {result.errors} errors
+              {isPdfFile 
+                ? 'Professional document created with Claude Agent SDK'
+                : `Professional sales analysis with ${result.formulaCount || 0} Excel formulas • ${result.sections || 0} sections • ${result.errors || 0} errors`
+              }
             </p>
           </div>
           <button
@@ -57,39 +64,70 @@ function BenchmarkResults({ result }) {
             className="btn btn-primary flex items-center space-x-2"
           >
             <Download className="h-4 w-4" />
-            <span>Download Excel</span>
+            <span>{isPdfFile ? 'Download PDF' : 'Download Excel'}</span>
           </button>
         </div>
       </div>
 
-      {/* Quality Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-primary-600 mb-1">{result.formulaCount}</div>
-          <div className="text-sm text-gray-600">Excel Formulas</div>
-          <div className="text-xs text-green-600 font-semibold mt-1">100% Formula-Based</div>
+      {/* Quality Metrics - Only show for Excel */}
+      {!isPdfFile && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card text-center">
+            <div className="text-3xl font-bold text-primary-600 mb-1">{result.formulaCount || 0}</div>
+            <div className="text-sm text-gray-600">Excel Formulas</div>
+            <div className="text-xs text-green-600 font-semibold mt-1">100% Formula-Based</div>
+          </div>
+          <div className="card text-center">
+            <div className="text-3xl font-bold text-primary-600 mb-1">{result.sections || 0}</div>
+            <div className="text-sm text-gray-600">Analysis Sections</div>
+            <div className="text-xs text-blue-600 font-semibold mt-1">Comprehensive Coverage</div>
+          </div>
+          <div className="card text-center">
+            <div className="text-3xl font-bold text-green-600 mb-1">{result.errors || 0}</div>
+            <div className="text-sm text-gray-600">Formula Errors</div>
+            <div className="text-xs text-green-600 font-semibold mt-1">✓ Validated</div>
+          </div>
         </div>
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-primary-600 mb-1">{result.sections}</div>
-          <div className="text-sm text-gray-600">Analysis Sections</div>
-          <div className="text-xs text-blue-600 font-semibold mt-1">Comprehensive Coverage</div>
+      )}
+
+      {/* Quality Metrics - For PDF */}
+      {isPdfFile && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card text-center">
+            <div className="text-3xl font-bold text-primary-600 mb-1">
+              <FileText className="h-12 w-12 mx-auto text-red-600" />
+            </div>
+            <div className="text-sm text-gray-600">PDF Document</div>
+            <div className="text-xs text-red-600 font-semibold mt-1">Professional Format</div>
+          </div>
+          <div className="card text-center">
+            <div className="text-3xl font-bold text-primary-600 mb-1">{(fileMetadata?.file_size / 1024).toFixed(1) || '-'}</div>
+            <div className="text-sm text-gray-600">File Size (KB)</div>
+            <div className="text-xs text-blue-600 font-semibold mt-1">Ready to Share</div>
+          </div>
+          <div className="card text-center">
+            <div className="text-3xl font-bold text-green-600 mb-1">✓</div>
+            <div className="text-sm text-gray-600">AI Generated</div>
+            <div className="text-xs text-green-600 font-semibold mt-1">Claude Agent SDK</div>
+          </div>
         </div>
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-green-600 mb-1">{result.errors}</div>
-          <div className="text-sm text-gray-600">Formula Errors</div>
-          <div className="text-xs text-green-600 font-semibold mt-1">✓ Validated</div>
-        </div>
-      </div>
+      )}
 
       {/* File Preview */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <FileSpreadsheet className="h-6 w-6 text-green-600" />
+            {isPdfFile ? (
+              <FileText className="h-6 w-6 text-red-600" />
+            ) : (
+              <FileSpreadsheet className="h-6 w-6 text-green-600" />
+            )}
             <div>
-              <h3 className="font-semibold text-gray-900">Excel Report Generated</h3>
+              <h3 className="font-semibold text-gray-900">
+                {isPdfFile ? 'PDF Report Generated' : 'Excel Report Generated'}
+              </h3>
               <p className="text-sm text-gray-500">
-                {fileMetadata?.file_name || result.file_name || result.fileName || 'output.xlsx'}
+                {fileMetadata?.file_name || result.file_name || result.fileName || 'output file'}
                 {fileMetadata?.file_size && (
                   <span className="ml-2 text-gray-400">
                     ({(fileMetadata.file_size / 1024).toFixed(1)} KB)
@@ -99,8 +137,12 @@ function BenchmarkResults({ result }) {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-              Excel (.xlsx)
+            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+              isPdfFile 
+                ? 'bg-red-100 text-red-700' 
+                : 'bg-green-100 text-green-700'
+            }`}>
+              {isPdfFile ? 'PDF (.pdf)' : 'Excel (.xlsx)'}
             </span>
           </div>
         </div>
