@@ -268,11 +268,13 @@ function BenchmarkInterface({ onResultReady }) {
           
           <div className="bg-white rounded-lg shadow-2xl p-8 max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col relative">
             {/* Close Button */}
-            {progress >= 100 && (
+            {(progress >= 95 || status.toLowerCase().includes('complete')) && (
               <button
                 onClick={() => {
                   setExecuting(false)
                   setShowConfetti(false)
+                  setProgress(0)
+                  setStatus('')
                 }}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all z-10"
               >
