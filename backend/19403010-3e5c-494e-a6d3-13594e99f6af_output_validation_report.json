@@ -1,0 +1,38 @@
+{
+  "file_path": "19403010-3e5c-494e-a6d3-13594e99f6af_output.xlsx",
+  "is_valid": true,
+  "total_issues": 2,
+  "critical_issues": 0,
+  "warnings": 0,
+  "info_messages": 2,
+  "issues": [
+    {
+      "severity": "info",
+      "category": "statistics",
+      "sheet": "All",
+      "cell": "N/A",
+      "message": "Found 73 cells with formulas",
+      "value": null,
+      "formula": null
+    },
+    {
+      "severity": "info",
+      "category": "quality",
+      "sheet": "All",
+      "cell": "N/A",
+      "message": "No formula errors detected",
+      "value": null,
+      "formula": null
+    }
+  ],
+  "summary": {
+    "total_sheets": 1,
+    "total_cells": 279,
+    "formula_cells": 73,
+    "error_cells": 0,
+    "empty_cells": 119,
+    "sheets": [
+      "XR Retailer 2023 Analysis"
+    ]
+  }
+}
