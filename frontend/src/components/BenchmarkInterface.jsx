@@ -34,6 +34,7 @@ function BenchmarkInterface({ onResultReady }) {
       setTasks(data.tasks || [])
       if (data.tasks && data.tasks.length > 0) {
         setSelectedTask(data.tasks[0])
+        setExpandedTask(data.tasks[0].task_id)  // Auto-expand first task
       }
       setLoading(false)
     } catch (error) {
