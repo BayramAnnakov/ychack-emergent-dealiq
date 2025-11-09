@@ -546,7 +546,9 @@ async def execute_benchmark_task(task_id: str):
                     
                     # Extract token information
                     if usage:
-                        tokens_used = usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+                        input_tokens = usage.get("input_tokens", 0)
+                        output_tokens = usage.get("output_tokens", 0)
+                        tokens_used = input_tokens + output_tokens
                     
                     if duration_ms and num_turns:
                         duration_sec = duration_ms / 1000
@@ -563,6 +565,8 @@ async def execute_benchmark_task(task_id: str):
                         'progress': last_progress,
                         'cost_usd': total_cost,
                         'tokens': tokens_used,
+                        'input_tokens': usage.get("input_tokens", 0) if usage else 0,
+                        'output_tokens': usage.get("output_tokens", 0) if usage else 0,
                         'duration_ms': duration_ms,
                         'num_turns': num_turns
                     }
