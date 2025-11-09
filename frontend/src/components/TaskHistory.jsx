@@ -227,6 +227,19 @@ function TaskHistory() {
                     }`}>
                       {task.file_type === 'pdf' ? 'PDF' : 'Excel'}
                     </span>
+                    
+                    {/* QA Score Badge */}
+                    {qaScores[task.task_id] !== undefined && (
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                        qaScores[task.task_id] >= 90 
+                          ? 'bg-green-100 text-green-700' 
+                          : qaScores[task.task_id] >= 70
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        QA: {qaScores[task.task_id]}/100
+                      </span>
+                    )}
                   </div>
 
                   {task.file_type === 'excel' && task.sheet_names && task.sheet_names.length > 0 && (
