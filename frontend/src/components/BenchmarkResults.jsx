@@ -148,13 +148,21 @@ function BenchmarkResults({ result }) {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-              <p className="text-sm text-blue-800 flex items-center">
-                <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>
-                  <strong>Formula-driven analysis:</strong> All calculations use Excel formulas, not hardcoded values. 
-                  Download to see formulas and modify as needed.
-                </span>
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-blue-800 flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span>
+                    <strong>Formula-driven analysis:</strong> All calculations use Excel formulas
+                  </span>
+                </p>
+                <button
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="btn btn-sm btn-secondary flex items-center space-x-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  <span>{showPreview ? 'Hide' : 'Show'} Preview</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : (
