@@ -102,23 +102,49 @@ function BenchmarkResults({ result }) {
         </div>
       </div>
 
-      {/* Quality Metrics - Only show for Excel */}
-      {!isPdfFile && (
+      {/* Quality Metrics - Use validation data */}
+      {!isPdfFile && validation && !validationLoading && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="card text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-1">{result.formulaCount || 0}</div>
+            <div className="text-3xl font-bold text-primary-600 mb-1">
+              {validation.summary?.formula_cells || 0}
+            </div>
             <div className="text-sm text-gray-600">Excel Formulas</div>
-            <div className="text-xs text-green-600 font-semibold mt-1">100% Formula-Based</div>
+            <div className="text-xs text-green-600 font-semibold mt-1">
+              {validation.summary?.formula_percentage || 0}% Formula-Based
+            </div>
           </div>
           <div className="card text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-1">{result.sections || 0}</div>
-            <div className="text-sm text-gray-600">Analysis Sections</div>
-            <div className="text-xs text-blue-600 font-semibold mt-1">Comprehensive Coverage</div>
+            <div className="text-3xl font-bold text-primary-600 mb-1">
+              {validation.summary?.total_sheets || fileMetadata?.sheet_count || 0}
+            </div>
+            <div className="text-sm text-gray-600">Worksheets</div>
+            <div className="text-xs text-blue-600 font-semibold mt-1">Multi-Sheet Analysis</div>
           </div>
           <div className="card text-center">
-            <div className="text-3xl font-bold text-green-600 mb-1">{result.errors || 0}</div>
+            <div className="text-3xl font-bold text-green-600 mb-1">
+              {validation.summary?.error_cells || 0}
+            </div>
             <div className="text-sm text-gray-600">Formula Errors</div>
-            <div className="text-xs text-green-600 font-semibold mt-1">✓ Validated</div>
+            <div className="text-xs text-green-600 font-semibold mt-1">✓ QA Validated</div>
+          </div>
+        </div>
+      )}
+
+      {/* Quality Metrics - Loading state */}
+      {!isPdfFile && validationLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card text-center animate-pulse">
+            <div className="h-10 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-100 rounded"></div>
+          </div>
+          <div className="card text-center animate-pulse">
+            <div className="h-10 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-100 rounded"></div>
+          </div>
+          <div className="card text-center animate-pulse">
+            <div className="h-10 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-100 rounded"></div>
           </div>
         </div>
       )}
