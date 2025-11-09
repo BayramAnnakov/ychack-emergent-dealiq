@@ -578,7 +578,7 @@ async def execute_benchmark_task(task_id: str):
                     else:
                         message = "✨ Claude analysis complete"
                     
-                    last_progress = 90
+                    last_progress = 98
                     complete_data = {
                         'status': message, 
                         'progress': last_progress,
