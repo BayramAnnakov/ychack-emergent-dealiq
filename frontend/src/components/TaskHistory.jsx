@@ -192,12 +192,7 @@ function TaskHistory() {
                 </button>
                 
                 <button
-                  onClick={() => {
-                    const link = document.createElement('a')
-                    link.href = getDownloadUrl(task.task_id)
-                    link.download = task.file_name
-                    link.click()
-                  }}
+                  onClick={() => downloadExcelResult(task.task_id)}
                   className="btn btn-sm btn-primary flex items-center space-x-1 w-full sm:w-auto"
                 >
                   <Download className="h-4 w-4" />
