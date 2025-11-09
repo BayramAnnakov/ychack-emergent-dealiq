@@ -352,7 +352,7 @@ async def execute_benchmark_task(task_id: str):
                     else:
                         message = f"⚙️ {subtype}"
                     
-                    last_progress = min(last_progress + 1, 85)
+                    last_progress = min(last_progress + 2, 95)
                     yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
                     
                 elif update_type == "user":
