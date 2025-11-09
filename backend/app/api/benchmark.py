@@ -365,6 +365,11 @@ async def execute_benchmark_task(task_id: str):
                     tool_uses = update.get("tool_uses", [])
                     thinking = update.get("thinking", "")
                     
+                    # Increment turn count for cost estimation
+                    turn_count += 1
+                    estimated_cost = turn_count * COST_PER_TURN
+                    estimated_tokens = turn_count * TOKENS_PER_TURN
+                    
                     # Show thinking if available (extended thinking models)
                     if thinking and thinking.strip():
                         snippet = thinking[:150] + "..." if len(thinking) > 150 else thinking
