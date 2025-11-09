@@ -123,6 +123,11 @@ function App() {
               )}
             </div>
           </div>
+            ) : (
+              /* History Tab */
+              <AnalysisHistory onSelectAnalysis={handleSelectHistoricalAnalysis} />
+            )}
+          </div>
         ) : (
           /* Benchmark Mode */
           <div>
