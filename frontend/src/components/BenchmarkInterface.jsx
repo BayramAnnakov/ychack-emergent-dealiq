@@ -12,6 +12,7 @@ function BenchmarkInterface({ onResultReady }) {
   const [selectedTask, setSelectedTask] = useState(null)
   const [loading, setLoading] = useState(true)
   const [expandedTask, setExpandedTask] = useState(null)
+  const [progressLog, setProgressLog] = useState([]) // Track all progress messages
 
   useEffect(() => {
     loadTasks()
