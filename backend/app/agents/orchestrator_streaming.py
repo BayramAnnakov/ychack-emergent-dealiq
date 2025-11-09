@@ -188,6 +188,11 @@ Format your responses with clear sections and bullet points."""
 
                         total_content_length += len(content)
 
+                        # DEBUG: Check if message has usage
+                        message_usage = getattr(message, 'usage', None)
+                        message_id = getattr(message, 'id', None)
+                        print(f"DEBUG ORCHESTRATOR: message.usage = {message_usage}, message.id = {message_id}")
+
                         # Yield the message with usage data
                         yield {
                             "type": "assistant",
@@ -195,8 +200,8 @@ Format your responses with clear sections and bullet points."""
                             "tool_uses": tool_uses,
                             "message_number": message_count,
                             "timestamp": current_time,
-                            "id": getattr(message, 'id', None),
-                            "usage": getattr(message, 'usage', None)
+                            "id": message_id,
+                            "usage": message_usage
                         }
 
                     elif isinstance(message, ResultMessage):
