@@ -143,6 +143,7 @@ async def get_task_history():
     # Load task titles for matching
     tasks_file = "data/gdpval/sales_reps/sales_reps_tasks.json"
     task_titles = {}
+    task_descriptions = {}
     
     if os.path.exists(tasks_file):
         with open(tasks_file, 'r') as f:
@@ -167,6 +168,12 @@ async def get_task_history():
                     title = prompt.split('.')[0][:60]
                 
                 task_titles[task_id] = title
+                
+                # Extract first paragraph (up to first double newline or 200 chars)
+                paragraphs = prompt.split('\n\n')
+                first_para = paragraphs[0] if paragraphs else prompt
+                description = first_para[:200] + "..." if len(first_para) > 200 else first_para
+                task_descriptions[task_id] = description
     
     completed_tasks = []
     
