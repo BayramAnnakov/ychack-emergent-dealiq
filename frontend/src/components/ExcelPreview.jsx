@@ -10,7 +10,14 @@ function ExcelPreview({ taskId, fileName }) {
   const [expandedSheets, setExpandedSheets] = useState({})
 
   useEffect(() => {
-    loadExcelFile()
+    console.log('ExcelPreview mounted for taskId:', taskId)
+    if (taskId) {
+      loadExcelFile()
+    } else {
+      console.error('No taskId provided to ExcelPreview')
+      setError('No task ID provided')
+      setLoading(false)
+    }
   }, [taskId])
 
   const loadExcelFile = async () => {
