@@ -50,6 +50,11 @@ function BenchmarkInterface({ onResultReady }) {
       return
     }
 
+    // Clear previous result before starting new task
+    if (onResultReady) {
+      onResultReady(null)
+    }
+
     setExecuting(true)
     setProgress(0)
     setStatus('Initializing task execution...')
