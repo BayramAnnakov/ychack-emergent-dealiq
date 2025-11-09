@@ -538,3 +538,37 @@ async def get_validation_report(task_id: str):
         validation_data = json.load(f)
 
     return validation_data
+
+
+@router.get("/reference-file")
+async def serve_reference_file(url: str):
+    """
+    Proxy endpoint to serve reference files for Google Sheets import
+    Accepts either HuggingFace URLs or downloads and serves them
+    """
+    import httpx
+    from urllib.parse import unquote
+    
+    try:
+        # Download file from HuggingFace
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            
+            # Extract filename from URL
+            filename = url.split('/')[-1]
+            filename = unquote(filename)
+            
+            # Return file with proper headers for Google Sheets
+            return FileResponse(
+                path=None,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename=filename,
+                content=response.content,
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                    "Access-Control-Allow-Origin": "*"
+                }
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch reference file: {str(e)}")
