@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Clock, FileSpreadsheet, Download, Eye, Table } from 'lucide-react'
-import { getTaskHistory, getDownloadUrl } from '../services/benchmark'
+import { getTaskHistory, downloadExcelResult } from '../services/benchmark'
 import ExcelPreview from './ExcelPreview'
 
 function TaskHistory() {
