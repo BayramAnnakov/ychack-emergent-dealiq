@@ -543,34 +543,65 @@ async def get_task_result_metadata(task_id: str):
 
 
 @router.get("/file/{task_id}")
-async def get_excel_file(task_id: str):
-    """Serve the Excel file for browser preview (without forcing download)"""
+async def get_file(task_id: str):
+    """Serve the Excel or PDF file for browser preview (without forcing download)"""
     
-    # Look for the file
-    possible_paths = [
+    # Look for Excel files
+    excel_paths = [
         f"data/gdpval/outputs/{task_id}_output.xlsx",
         f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
         f"data/gdpval/reference_files/{task_id}_output.xlsx",
+        f".claude/skills/xlsx/{task_id}_output.xlsx",
         f"{task_id}_output.xlsx"
+    ]
+    
+    # Look for PDF files
+    pdf_paths = [
+        f"data/gdpval/outputs/{task_id}_output.pdf",
+        f"data/gdpval/deliverable_files/{task_id}_output.pdf",
+        f".claude/skills/pdf/{task_id}_output.pdf",
+        f"{task_id}_output.pdf"
     ]
 
     file_path = None
-    for path in possible_paths:
+    is_pdf = False
+    
+    # Check Excel first
+    for path in excel_paths:
         if os.path.exists(path):
             file_path = path
             break
+    
+    # Then check PDF
+    if not file_path:
+        for path in pdf_paths:
+            if os.path.exists(path):
+                file_path = path
+                is_pdf = True
+                break
 
     if not file_path:
-        raise HTTPException(status_code=404, detail="Excel file not found")
+        raise HTTPException(status_code=404, detail="Output file not found")
 
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename=f"{task_id}_output.xlsx",
-        headers={
-            "Content-Disposition": f'inline; filename="{task_id}_output.xlsx"'
-        }
-    )
+    # Return with appropriate media type
+    if is_pdf:
+        return FileResponse(
+            file_path,
+            media_type="application/pdf",
+            filename=f"{task_id}_output.pdf",
+            headers={
+                "Content-Disposition": f'inline; filename="{task_id}_output.pdf"'
+            }
+        )
+    else:
+        return FileResponse(
+            file_path,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename=f"{task_id}_output.xlsx",
+            headers={
+                "Content-Disposition": f'inline; filename="{task_id}_output.xlsx"'
+            }
+        )
 
 
 @router.get("/download/{task_id}")
