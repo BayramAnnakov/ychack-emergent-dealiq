@@ -110,7 +110,11 @@ function App() {
               )}
 
               {insights && (
-                <InsightsDashboard insights={insights} isLoading={isLoading} />
+                <InsightsDashboard 
+                  insights={insights} 
+                  isLoading={isLoading}
+                  analysisId={currentAnalysisId}
+                />
               )}
 
               {!uploadedFile && !insights && (
