@@ -225,6 +225,11 @@ async def execute_benchmark_task(task_id: str):
             # Get task description (prompt)
             task_description = selected_task.get("prompt", "")
             
+            # Determine output format based on task description
+            is_pdf_task = "pdf" in task_description.lower() and "create a pdf" in task_description.lower()
+            output_extension = ".pdf" if is_pdf_task else ".xlsx"
+            output_filename = f"{task_id}_output{output_extension}"
+            
             # Get reference files
             reference_file_urls = selected_task.get("reference_file_urls", [])
             reference_file_paths = []
