@@ -59,6 +59,7 @@ Be specific, data-driven, and provide professional-grade outputs."""
             max_turns=30,    # More turns for complex Excel tasks with data analysis
             permission_mode="default",  # Works with non-root user (appuser)
             cwd=backend_dir,
+            cli_path="/home/appuser/node_modules/.bin/claude",  # Path to claude CLI for appuser
             setting_sources=["user", "project"],
             allowed_tools=["Skill", "Read", "Write", "Bash"]
             # NOT including setting_sources or Skill in allowed_tools due to SDK hanging bug
