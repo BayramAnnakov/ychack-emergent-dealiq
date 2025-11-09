@@ -181,16 +181,17 @@ async def get_task_history():
                 file_path = os.path.join(search_path, filename)
                 
                 # Extract task ID from filename (handle both old and new format)
-                # New format: task_id_timestamp_output.ext
+                # New format: task_id_timestamp_output.ext (UUID_YYYYMMDD_HHMMSS_output.ext)
                 # Old format: task_id_output.ext
                 if "_output." in filename:
                     # Remove _output.xlsx or _output.pdf
                     base_name = filename.replace("_output.xlsx", "").replace("_output.pdf", "")
-                    # Check if it has timestamp (format: UUID_YYYYMMDD_HHMMSS)
+                    # Split by underscore - UUID uses dashes, so it stays as one part
+                    # Format: UUID_YYYYMMDD_HHMMSS
                     parts = base_name.split("_")
-                    if len(parts) >= 7:  # UUID has 5 parts + timestamp has 2 parts
-                        # Has timestamp, extract task_id (first 5 parts of UUID)
-                        task_id = "_".join(parts[:5])
+                    if len(parts) >= 3:  # UUID + date + time = 3 parts
+                        # Has timestamp, extract task_id (first part is UUID)
+                        task_id = parts[0]
                     else:
                         # No timestamp, entire base_name is task_id
                         task_id = base_name
