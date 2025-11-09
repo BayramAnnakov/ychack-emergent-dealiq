@@ -258,8 +258,6 @@ async def stream_analysis(file_id: str, query: str, analysis_type: str = "genera
                 
                 # Save analysis to history
                 try:
-                    import os
-                    import json
                     from datetime import datetime
                     
                     history_dir = "data/crm_analyses"
