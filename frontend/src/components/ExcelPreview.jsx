@@ -41,11 +41,18 @@ function ExcelPreview({ taskId, fileName }) {
   }
 
   const openInGoogleSheets = () => {
-    // Open download URL which will download the file
-    // User can then upload to Google Sheets manually
+    // First download the file
     const downloadUrl = `/api/v1/benchmark/download/${taskId}`
-    window.open(downloadUrl, '_blank')
-    alert('File will download. After downloading, visit sheets.google.com and click File > Import to open it in Google Sheets.')
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = `${taskId}_output.xlsx`
+    link.click()
+    
+    // Then open Google Sheets with import instructions
+    setTimeout(() => {
+      window.open('https://docs.google.com/spreadsheets/u/0/create', '_blank')
+      alert('File is downloading! After it completes:\n\n1. In the new Google Sheets tab, click File → Import\n2. Click Upload tab\n3. Drag the downloaded file or click Select a file\n4. Click Import data')
+    }, 500)
   }
 
   if (loading) {
