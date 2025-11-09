@@ -21,6 +21,7 @@ function BenchmarkInterface({ onResultReady }) {
     try {
       const response = await fetch('/api/v1/benchmark/tasks')
       const data = await response.json()
+      console.log('Loaded tasks:', data.tasks)
       setTasks(data.tasks || [])
       if (data.tasks && data.tasks.length > 0) {
         setSelectedTask(data.tasks[0])
