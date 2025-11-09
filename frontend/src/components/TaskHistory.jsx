@@ -182,23 +182,27 @@ function TaskHistory() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 ml-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 ml-4 flex-shrink-0">
                 <button
                   onClick={() => handleViewTask(task)}
-                  className="btn btn-sm btn-secondary flex items-center space-x-1"
+                  className="btn btn-sm btn-secondary flex items-center space-x-1 w-full sm:w-auto"
                 >
                   <Eye className="h-4 w-4" />
                   <span>Preview</span>
                 </button>
                 
-                <a
-                  href={getDownloadUrl(task.task_id)}
-                  download
-                  className="btn btn-sm btn-primary flex items-center space-x-1"
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a')
+                    link.href = getDownloadUrl(task.task_id)
+                    link.download = task.file_name
+                    link.click()
+                  }}
+                  className="btn btn-sm btn-primary flex items-center space-x-1 w-full sm:w-auto"
                 >
                   <Download className="h-4 w-4" />
                   <span>Download</span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
