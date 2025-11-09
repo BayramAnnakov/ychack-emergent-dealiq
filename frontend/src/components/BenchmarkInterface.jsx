@@ -118,7 +118,7 @@ function BenchmarkInterface({ onResultReady }) {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">
-                          {task.sector || 'Sales Task'}
+                          {task.title || task.sector || 'Sales Task'}
                         </p>
                         {task.has_reference_files && (
                           <span className="text-xs text-blue-600">Has reference files</span>
