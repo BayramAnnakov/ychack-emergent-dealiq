@@ -598,26 +598,49 @@ async def execute_benchmark_task(task_id: str):
 
 @router.get("/result/{task_id}")
 async def get_task_result_metadata(task_id: str):
-    """Get metadata about the generated Excel file"""
+    """Get metadata about the generated Excel or PDF file"""
     import openpyxl
+    import glob
     
-    # Look for the file
-    possible_paths = [
-        f"data/gdpval/outputs/{task_id}_output.xlsx",
-        f"data/gdpval/deliverable_files/{task_id}_output.xlsx",
-        f"data/gdpval/reference_files/{task_id}_output.xlsx",
-        f"{task_id}_output.xlsx"
+    # Look for files with timestamp support (PDF or Excel)
+    all_patterns = [
+        f"data/gdpval/outputs/{task_id}_*_output.*",
+        f"data/gdpval/outputs/{task_id}_output.*",
+        f".claude/skills/xlsx/{task_id}_*_output.xlsx",
+        f".claude/skills/xlsx/{task_id}_output.xlsx",
+        f".claude/skills/pdf/{task_id}_*_output.pdf",
+        f".claude/skills/pdf/{task_id}_output.pdf",
+        f"{task_id}_*_output.*",
+        f"{task_id}_output.*"
     ]
-
+    
     file_path = None
-    for path in possible_paths:
-        if os.path.exists(path):
-            file_path = path
+    for pattern in all_patterns:
+        matches = glob.glob(pattern)
+        if matches:
+            file_path = max(matches, key=os.path.getmtime)
             break
 
     if not file_path:
-        raise HTTPException(status_code=404, detail="Excel file not found")
+        raise HTTPException(status_code=404, detail="Output file not found")
 
+    is_pdf = file_path.endswith('.pdf')
+    file_name = os.path.basename(file_path)
+    file_size = os.path.getsize(file_path)
+    
+    # For PDF files, return basic metadata
+    if is_pdf:
+        return {
+            "task_id": task_id,
+            "file_name": file_name,
+            "file_path": os.path.abspath(file_path),
+            "file_size": file_size,
+            "file_type": "pdf",
+            "download_url": f"/api/v1/benchmark/download/{task_id}",
+            "preview_url": f"/api/v1/benchmark/file/{task_id}"
+        }
+    
+    # For Excel files, get sheet info
     try:
         # Load workbook to get metadata
         wb = openpyxl.load_workbook(file_path, read_only=True, data_only=False)
