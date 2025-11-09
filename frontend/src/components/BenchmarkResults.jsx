@@ -28,6 +28,17 @@ function BenchmarkResults({ result }) {
           console.error('Failed to load file metadata:', err)
           setLoading(false)
         })
+      
+      // Fetch validation report
+      getValidationReport(taskId)
+        .then(data => {
+          setValidation(data)
+          setValidationLoading(false)
+        })
+        .catch(err => {
+          console.error('Failed to load validation:', err)
+          setValidationLoading(false)
+        })
     }
   }, [result])
 
