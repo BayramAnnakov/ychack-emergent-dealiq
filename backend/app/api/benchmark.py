@@ -71,6 +71,21 @@ async def list_benchmark_tasks():
                 first_sentence = prompt.split('.')[0][:60]
                 return first_sentence + "..." if len(first_sentence) >= 60 else first_sentence
         
+        # Map HuggingFace URLs to local file names
+        def get_local_filename(hf_url):
+            """Convert HuggingFace URL to local filename"""
+            url_to_file = {
+                "7aef029e58a67b9ce3b8fd6110d8160b/DATA-Beutist Set Selling-v2.xlsx": "DATA-Beutist_Set_Selling-v2.xlsx",
+                "83cd6e2233b76f20b6a6643217f9ebb3/DATA XR MU 2023 Final (2).xlsx": "DATA_XR_MU_2023_Final.xlsx",
+                "915c72afa404c96174d69e03b74c6454/Inventory_and_Shipments Latest.xlsx": "Inventory_and_Shipments_Latest.xlsx",
+                "062f057c961cefe89513e32097df802b/Current Product Price List.xlsx": "Current_Product_Price_List.xlsx"
+            }
+            
+            for key, filename in url_to_file.items():
+                if key in hf_url:
+                    return filename
+            return None
+        
         # Return tasks with useful metadata
         formatted_tasks = []
         for task in all_tasks:
@@ -78,12 +93,17 @@ async def list_benchmark_tasks():
             prompt = task.get("prompt", "")
             description = prompt[:200] + "..." if len(prompt) > 200 else prompt
             
-            # Convert reference file URLs to proxy URLs for Google Sheets compatibility
+            # Convert reference file URLs to local proxy URLs
             reference_file_urls = task.get("reference_file_urls", [])
-            proxy_urls = [
-                f"/api/v1/benchmark/reference-file?url={url}"
-                for url in reference_file_urls
-            ]
+            proxy_urls = []
+            for url in reference_file_urls:
+                local_filename = get_local_filename(url)
+                if local_filename:
+                    # Use local file endpoint
+                    proxy_urls.append(f"/api/v1/benchmark/reference-file/{local_filename}")
+                else:
+                    # Fallback to proxy endpoint
+                    proxy_urls.append(f"/api/v1/benchmark/reference-file?url={url}")
             
             formatted_tasks.append({
                 "task_id": task.get("task_id"),
