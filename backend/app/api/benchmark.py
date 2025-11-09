@@ -567,11 +567,32 @@ async def get_validation_report(task_id: str):
     return validation_data
 
 
+@router.get("/reference-file/{filename}")
+async def serve_local_reference_file(filename: str):
+    """
+    Serve local reference files with proper headers for Google Sheets import
+    """
+    file_path = f"data/gdpval/reference_files/{filename}"
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Reference file not found")
+    
+    return FileResponse(
+        file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=filename,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Allow-Origin": "*"
+        }
+    )
+
+
 @router.get("/reference-file")
 async def serve_reference_file(url: str):
     """
-    Proxy endpoint to serve reference files for Google Sheets import
-    Downloads from HuggingFace and serves with proper headers
+    Proxy endpoint to serve reference files from HuggingFace for Google Sheets import
+    This is a fallback for files not available locally
     """
     import httpx
     from urllib.parse import unquote
