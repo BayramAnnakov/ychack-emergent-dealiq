@@ -357,17 +357,17 @@ async def execute_benchmark_task(task_id: str):
                     
                     # Show thinking if available (extended thinking models)
                     if thinking and thinking.strip():
-                        snippet = thinking[:120] + "..." if len(thinking) > 120 else thinking
-                        message = f"🧠 Claude thinking: {snippet}"
+                        snippet = thinking[:150] + "..." if len(thinking) > 150 else thinking
+                        message = f"🧠 Thinking: {snippet}"
                         last_progress = min(last_progress + 1, 85)
-                        yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                        yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': 'extended_thinking'})}\n\n"
                     
                     # Show text content
                     if content_blocks and isinstance(content_blocks, str) and content_blocks.strip():
-                        snippet = content_blocks[:150] + "..." if len(content_blocks) > 150 else content_blocks
-                        message = f"💬 Claude: {snippet}"
+                        snippet = content_blocks[:180] + "..." if len(content_blocks) > 180 else content_blocks
+                        message = f"💬 {snippet}"
                         last_progress = min(last_progress + 2, 85)
-                        yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                        yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': 'claude_response'})}\n\n"
                         output_text += content_blocks
                     
                     # Show tool usage with detailed context
@@ -375,45 +375,114 @@ async def execute_benchmark_task(task_id: str):
                         for tool in tool_uses:
                             tool_name = tool.get("name", "Unknown")
                             tool_input = tool.get("input", {})
+                            tool_id = tool.get("id", "")
                             
-                            if tool_name == "Read":
-                                file_path = tool_input.get("path", "")
+                            if tool_name == "Skill":
+                                # Skill invocation
+                                skill_name = tool_input.get("skill", "unknown")
+                                message = f"🎯 Activating {skill_name} Skill..."
+                                detail = f"skill_{skill_name}"
+                                
+                            elif tool_name == "Read":
+                                file_path = tool_input.get("file_path", tool_input.get("path", ""))
                                 if file_path:
                                     file_name = os.path.basename(file_path)
-                                    message = f"📖 Reading: {file_name}"
+                                    offset = tool_input.get("offset")
+                                    limit = tool_input.get("limit")
+                                    if offset or limit:
+                                        message = f"📖 Reading {file_name} (lines {offset or 0}-{(offset or 0) + (limit or 'end')})"
+                                    else:
+                                        message = f"📖 Reading: {file_name}"
+                                    detail = f"read_{file_name}"
                                 else:
                                     message = "📖 Reading file..."
+                                    detail = "read_file"
                                     
                             elif tool_name == "Write":
-                                file_path = tool_input.get("path", "")
+                                file_path = tool_input.get("file_path", tool_input.get("path", ""))
+                                content_size = len(str(tool_input.get("content", "")))
                                 if file_path:
                                     file_name = os.path.basename(file_path)
-                                    message = f"✍️ Writing: {file_name}"
+                                    message = f"✍️ Writing {file_name} ({content_size} chars)"
+                                    detail = f"write_{file_name}"
                                 else:
-                                    message = "✍️ Writing file..."
+                                    message = f"✍️ Writing file ({content_size} chars)..."
+                                    detail = "write_file"
+                                    
+                            elif tool_name == "Edit":
+                                file_path = tool_input.get("file_path", "")
+                                replace_all = tool_input.get("replace_all", False)
+                                if file_path:
+                                    file_name = os.path.basename(file_path)
+                                    action = "all occurrences" if replace_all else "first occurrence"
+                                    message = f"✏️ Editing {file_name} ({action})"
+                                    detail = f"edit_{file_name}"
+                                else:
+                                    message = "✏️ Editing file..."
+                                    detail = "edit_file"
                                     
                             elif tool_name == "Bash":
                                 cmd = str(tool_input.get("command", ""))
-                                # Show meaningful part of command
-                                if "python" in cmd.lower():
-                                    message = "⚡ Running Python calculation..."
-                                elif "excel" in cmd.lower() or "xlsx" in cmd.lower():
-                                    message = "📊 Processing Excel data..."
+                                description = tool_input.get("description", "")
+                                run_bg = tool_input.get("run_in_background", False)
+                                
+                                # Use description if available
+                                if description:
+                                    message = f"⚡ {description}"
+                                    detail = "bash_described"
+                                # Otherwise, intelligently parse command
+                                elif "pip install" in cmd:
+                                    packages = cmd.replace("pip install", "").strip().split()[0:3]
+                                    message = f"📦 Installing: {', '.join(packages)}"
+                                    detail = "bash_install"
+                                elif "python" in cmd.lower():
+                                    if "openpyxl" in cmd or "xlsx" in cmd:
+                                        message = "📊 Processing Excel with Python..."
+                                        detail = "bash_python_excel"
+                                    elif "reportlab" in cmd or "pdf" in cmd:
+                                        message = "📄 Generating PDF with Python..."
+                                        detail = "bash_python_pdf"
+                                    else:
+                                        message = "🐍 Running Python script..."
+                                        detail = "bash_python"
                                 elif len(cmd) > 0:
-                                    cmd_preview = cmd[:60] + "..." if len(cmd) > 60 else cmd
-                                    message = f"⚡ Running: {cmd_preview}"
+                                    cmd_preview = cmd[:70] + "..." if len(cmd) > 70 else cmd
+                                    message = f"⚡ {cmd_preview}"
+                                    detail = "bash_command"
                                 else:
                                     message = "⚡ Executing command..."
+                                    detail = "bash_generic"
+                                
+                                if run_bg:
+                                    message += " (background)"
                                     
                             elif tool_name == "Glob":
                                 pattern = tool_input.get("pattern", "")
-                                message = f"🔍 Searching: {pattern}" if pattern else "🔍 Finding files..."
+                                message = f"🔍 Finding: {pattern}" if pattern else "🔍 Searching files..."
+                                detail = "glob_search"
+                            
+                            elif tool_name == "Grep":
+                                pattern = tool_input.get("pattern", "")
+                                path = tool_input.get("path", "")
+                                message = f"🔎 Searching '{pattern}' in {os.path.basename(path) if path else 'files'}"
+                                detail = "grep_search"
+                            
+                            elif tool_name == "TodoWrite":
+                                todos = tool_input.get("todos", [])
+                                if todos and len(todos) > 0:
+                                    first_todo = todos[0].get("content", "")[:50]
+                                    message = f"📝 Planning: {first_todo}..." if first_todo else "📝 Creating task list..."
+                                    detail = "todo_planning"
+                                else:
+                                    message = "📝 Updating task list..."
+                                    detail = "todo_write"
                                 
                             else:
-                                message = f"🔧 Using: {tool_name}"
+                                message = f"🔧 {tool_name}"
+                                detail = f"tool_{tool_name.lower()}"
                             
                             last_progress = min(last_progress + 1, 85)
-                            yield f"data: {json.dumps({'status': message, 'progress': last_progress})}\n\n"
+                            yield f"data: {json.dumps({'status': message, 'progress': last_progress, 'detail': detail, 'tool': tool_name})}\n\n"
                     
                 elif update_type == "result":
                     # ToolResultBlock - show meaningful preview
