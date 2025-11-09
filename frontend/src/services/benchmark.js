@@ -125,7 +125,7 @@ export function getDownloadUrl(taskId) {
 }
 
 /**
- * Download Excel result file
+ * Download Excel or PDF result file
  * @param {string} taskId - The task ID
  */
 export async function downloadExcelResult(taskId) {
@@ -137,6 +137,17 @@ export async function downloadExcelResult(taskId) {
       throw new Error('Failed to download file')
     }
     
+    // Get the actual filename from Content-Disposition header
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = `${taskId}_output.xlsx` // fallback
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1]
+      }
+    }
+    
     // Get the blob
     const blob = await response.blob()
     
@@ -144,7 +155,7 @@ export async function downloadExcelResult(taskId) {
     const downloadUrl = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = downloadUrl
-    a.download = `${taskId}_output.xlsx`
+    a.download = filename
     document.body.appendChild(a)
     a.click()
     
