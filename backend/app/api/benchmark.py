@@ -513,7 +513,7 @@ async def execute_benchmark_task(task_id: str):
                                 message = f"🔧 {tool_name}"
                                 detail = f"tool_{tool_name.lower()}"
                             
-                            last_progress = min(last_progress + 1, 85)
+                            last_progress = min(last_progress + 2, 95)
                             progress_data = {
                                 'status': message, 
                                 'progress': last_progress, 
