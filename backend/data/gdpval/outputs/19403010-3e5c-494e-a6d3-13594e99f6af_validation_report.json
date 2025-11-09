@@ -1,0 +1,32 @@
+{
+  "file_path": "data/gdpval/outputs/19403010-3e5c-494e-a6d3-13594e99f6af_20251109_075820_output.xlsx",
+  "file_type": "excel",
+  "is_valid": true,
+  "quality_score": 99,
+  "total_issues": 1,
+  "critical_issues": 0,
+  "warnings": 0,
+  "info_messages": 1,
+  "issues": [
+    {
+      "severity": "info",
+      "category": "quality",
+      "location": "All Sheets",
+      "message": "\u2705 Zero formula errors - excellent quality",
+      "value": null,
+      "formula": null,
+      "suggestion": null
+    }
+  ],
+  "summary": {
+    "total_sheets": 3,
+    "total_cells": 4683,
+    "formula_cells": 0,
+    "error_cells": 0,
+    "empty_cells": 156,
+    "numeric_cells": 3373,
+    "formula_percentage": 0.0
+  },
+  "task_id": "19403010-3e5c-494e-a6d3-13594e99f6af",
+  "file_name": "19403010-3e5c-494e-a6d3-13594e99f6af_20251109_075820_output.xlsx"
+}

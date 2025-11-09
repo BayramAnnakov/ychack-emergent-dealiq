@@ -102,7 +102,8 @@ export const getAgentsStatus = async () => {
 
 // WebSocket connection for real-time chat
 export const createAgentWebSocket = (onMessage, onError) => {
-  const wsUrl = `ws://localhost:8000/api/v1/agents/chat`
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsUrl = `${protocol}//${window.location.host}/api/v1/agents/chat`
   const ws = new WebSocket(wsUrl)
 
   ws.onopen = () => {

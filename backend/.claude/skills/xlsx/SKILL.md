@@ -11,6 +11,31 @@ license: Proprietary. LICENSE.txt has complete terms
 ### Zero Formula Errors
 - Every Excel model MUST be delivered with ZERO formula errors (#REF!, #DIV/0!, #VALUE!, #N/A, #NAME?)
 
+### Formula Recalculation - CRITICAL TIMEOUT SETTINGS
+**When using recalc.py to recalculate formulas:**
+- ALWAYS specify a timeout of at least 120 seconds for files with formulas
+- Default timeout (30s) is too short and will cause failures
+- For very large files (>50 sheets or >500 formulas), recalculation may take 2-3 minutes
+
+**Correct usage:**
+```bash
+# Minimum timeout for most files
+python recalc.py output.xlsx 120
+
+# For very large files
+python recalc.py large_model.xlsx 180
+
+# Alternative: Skip recalc for very large files (Excel recalculates on open)
+# Only use this if file has >500 formulas
+# Excel will recalculate automatically when user opens it
+```
+
+**Common mistake to AVOID:**
+```bash
+# ❌ WRONG - Default 30s timeout will cause exit code 143 errors
+python recalc.py output.xlsx
+```
+
 ### Preserve Existing Templates (when updating templates)
 - Study and EXACTLY match existing format, style, and conventions when modifying files
 - Never impose standardized formatting on files with established patterns
@@ -59,6 +84,68 @@ Unless otherwise stated by the user or existing template
   - "Source: Company 10-Q, Q2 2025, Exhibit 99.1, [SEC EDGAR URL]"
   - "Source: Bloomberg Terminal, 8/15/2025, AAPL US Equity"
   - "Source: FactSet, 8/20/2025, Consensus Estimates Screen"
+
+
+### Column Width and Formatting (CRITICAL)
+
+#### Auto-Adjust Column Widths
+**ALWAYS set appropriate column widths** to prevent text truncation:
+
+```python
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+wb = Workbook()
+ws = wb.active
+
+# After adding all data, auto-adjust column widths
+for column in ws.columns:
+    max_length = 0
+    column_letter = get_column_letter(column[0].column)
+    
+    for cell in column:
+        try:
+            if len(str(cell.value)) > max_length:
+                max_length = len(str(cell.value))
+        except:
+            pass
+    
+    # Set width with padding (1.2x for comfort)
+    adjusted_width = min((max_length + 2) * 1.2, 100)  # Cap at 100
+    ws.column_dimensions[column_letter].width = adjusted_width
+```
+
+#### Prevent Common Formatting Issues
+1. **Text wrapping for long content**
+   ```python
+   from openpyxl.styles import Alignment
+   
+   cell.alignment = Alignment(wrap_text=True, vertical='top')
+   ```
+
+2. **Merge cells carefully** - Can cause formula reference issues
+   ```python
+   # Only merge for headers/titles, not data cells
+   ws.merge_cells('A1:D1')  # Title row only
+   ```
+
+3. **Freeze panes for large data**
+   ```python
+   ws.freeze_panes = 'B2'  # Freeze first row and column
+   ```
+
+4. **Set row heights** for wrapped text
+   ```python
+   ws.row_dimensions[1].height = 30  # Header row
+   ```
+
+5. **Number format for readability**
+   ```python
+   cell.number_format = '#,##0.00'  # Thousands separator
+   cell.number_format = '$#,##0'    # Currency
+   cell.number_format = '0.0%'      # Percentage
+   ```
+
 
 # XLSX creation, editing, and analysis
 
@@ -244,6 +331,16 @@ Quick checks to ensure formulas work correctly:
 - [ ] **Test edge cases**: Include zero, negative, and very large values
 
 ### Interpreting recalc.py Output
+**CRITICAL: Always use adequate timeout when calling recalc.py**
+
+```bash
+# Correct usage with timeout
+python recalc.py output.xlsx 120
+
+# The timeout parameter (120) is MANDATORY for reliable operation
+# Default 30s timeout will cause failures on files with many formulas
+```
+
 The script returns JSON with error details:
 ```json
 {

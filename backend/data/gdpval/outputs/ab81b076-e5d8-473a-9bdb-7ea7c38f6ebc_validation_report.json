@@ -1,0 +1,38 @@
+{
+  "file_path": "data/gdpval/outputs/ab81b076-e5d8-473a-9bdb-7ea7c38f6ebc_20251109_065404_output.pdf",
+  "file_type": "pdf",
+  "is_valid": true,
+  "quality_score": 98,
+  "total_issues": 2,
+  "critical_issues": 0,
+  "warnings": 0,
+  "info_messages": 2,
+  "issues": [
+    {
+      "severity": "info",
+      "category": "quality",
+      "location": "Document",
+      "message": "\u2705 7 pages generated successfully",
+      "value": null,
+      "formula": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "quality",
+      "location": "Document",
+      "message": "\u2705 10610 characters of content extracted",
+      "value": null,
+      "formula": null,
+      "suggestion": null
+    }
+  ],
+  "summary": {
+    "total_pages": 7,
+    "file_size_kb": 14.0,
+    "total_characters": 10610,
+    "has_metadata": true
+  },
+  "task_id": "ab81b076-e5d8-473a-9bdb-7ea7c38f6ebc",
+  "file_name": "ab81b076-e5d8-473a-9bdb-7ea7c38f6ebc_20251109_065404_output.pdf"
+}

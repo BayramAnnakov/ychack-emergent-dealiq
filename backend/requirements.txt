@@ -40,4 +40,4 @@ pytest-asyncio
 
 # Utilities
 pytz
-chardet
+chardetPyPDF2

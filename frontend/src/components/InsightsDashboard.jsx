@@ -1,15 +1,17 @@
 import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Activity, ChevronDown, ChevronUp, BarChart3, Sparkles, Zap } from 'lucide-react'
+import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Activity, ChevronDown, ChevronUp, BarChart3, Sparkles, Zap, FileDown } from 'lucide-react'
+import toast from 'react-hot-toast'
 import ActionableInsights from './ActionableInsights'
 import ExecutiveSummary from './ExecutiveSummary'
 import InsightsCharts from './InsightsCharts'
 import LoadingSkeleton from './LoadingSkeleton'
 
-function InsightsDashboard({ insights, isLoading }) {
+function InsightsDashboard({ insights, isLoading, analysisId }) {
   const [expandedInsights, setExpandedInsights] = useState({})
-  const [activeTab, setActiveTab] = useState('insights') // Default to insights-first
+  const [activeTab, setActiveTab] = useState('insights')
+  const [exportingPdf, setExportingPdf] = useState(false) // Default to insights-first
 
   if (isLoading) {
     return <LoadingSkeleton />
@@ -87,34 +89,85 @@ function InsightsDashboard({ insights, isLoading }) {
     { id: 'metrics', label: 'Metrics & Charts', icon: BarChart3 },
     { id: 'all', label: 'Full Analysis', icon: Lightbulb }
   ]
+  
+  const handleExportPdf = async () => {
+    if (!analysisId) {
+      toast.error('No analysis ID available for export')
+      return
+    }
+    
+    setExportingPdf(true)
+    toast.loading('Generating PDF report with Claude...', { id: 'pdf-export' })
+    
+    try {
+      const response = await fetch(`/api/v1/insights/export-pdf/${analysisId}`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        throw new Error('PDF generation failed')
+      }
+      
+      const result = await response.json()
+      
+      toast.success('PDF report generated!', { id: 'pdf-export' })
+      
+      // Download the PDF
+      const downloadUrl = `/api/v1/insights/download-pdf/${analysisId}`
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = result.pdf_filename
+      link.click()
+      
+    } catch (error) {
+      toast.error('Failed to generate PDF', { id: 'pdf-export' })
+      console.error('PDF export error:', error)
+    } finally {
+      setExportingPdf(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
       {/* Tabbed Navigation */}
       <div className="card">
         <div className="border-b border-gray-200 mb-6">
-          <nav className="flex space-x-4" aria-label="Tabs">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors
-                    ${isActive
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }
-                  `}
-                >
-                  <Icon className="h-5 w-5" />
-                  {tab.label}
-                </button>
-              )
-            })}
-          </nav>
+          <div className="flex items-center justify-between">
+            <nav className="flex space-x-4" aria-label="Tabs">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors
+                      ${isActive
+                        ? 'border-primary-600 text-primary-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </nav>
+            
+            {/* Export PDF Button */}
+            {analysisId && (
+              <button
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className="btn btn-primary flex items-center space-x-2"
+              >
+                <FileDown className="h-4 w-4" />
+                <span>{exportingPdf ? 'Generating...' : 'Export as PDF'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Content */}

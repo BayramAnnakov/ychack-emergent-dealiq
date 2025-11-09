@@ -3,7 +3,7 @@
  * Handles communication with GDPval benchmark endpoints
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
 /**
  * Fetch list of available benchmark tasks
@@ -62,16 +62,24 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
               if (onComplete) {
                 onComplete({
                   taskId: data.task_id,
+                  task_id: data.task_id,  // Also include snake_case
                   fileName: data.file_name,
+                  file_name: data.file_name,  // Also include snake_case
                   formulaCount: data.formula_count,
                   sections: data.sections,
                   errors: data.errors
                 })
               }
             } else {
-              // Progress update
+              // Progress update with enhanced data
               if (onProgress) {
-                onProgress(data.status, data.progress)
+                onProgress(data.status, data.progress, {
+                  activeSkills: data.active_skills,
+                  costUsd: data.cost_usd,
+                  tokens: data.tokens,
+                  tool: data.tool,
+                  detail: data.detail
+                })
               }
             }
           } catch (e) {
@@ -90,12 +98,83 @@ export async function executeBenchmarkTask(taskId, callbacks = {}) {
 }
 
 /**
- * Download Excel result file
+ * Get task history (completed tasks)
+ * @returns {Promise<object>} List of completed tasks
+ */
+export async function getTaskHistory() {
+  const response = await fetch(`${API_BASE_URL}/benchmark/history`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch task history')
+  }
+  return await response.json()
+}
+
+/**
+ * Get task result metadata
+ * @param {string} taskId - The task ID
+ * @returns {Promise<object>} Result metadata including sheets info
+ */
+export async function getTaskResult(taskId) {
+  const response = await fetch(`${API_BASE_URL}/benchmark/result/${taskId}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch task result')
+  }
+  return await response.json()
+}
+
+/**
+ * Download the Excel result file
+ * @param {string} taskId - The task ID
+ * @returns {string} Download URL
+ */
+export function getDownloadUrl(taskId) {
+  const url = `${API_BASE_URL}/benchmark/download/${taskId}`
+  return url
+}
+
+/**
+ * Download Excel or PDF result file
  * @param {string} taskId - The task ID
  */
-export function downloadExcelResult(taskId) {
+export async function downloadExcelResult(taskId) {
   const url = `${API_BASE_URL}/benchmark/download/${taskId}`
-  window.open(url, '_blank')
+  
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error('Failed to download file')
+    }
+    
+    // Get the actual filename from Content-Disposition header
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = `${taskId}_output.xlsx` // fallback
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1]
+      }
+    }
+    
+    // Get the blob
+    const blob = await response.blob()
+    
+    // Create a download link
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = downloadUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    
+    // Cleanup
+    window.URL.revokeObjectURL(downloadUrl)
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('Download failed:', error)
+    // Fallback to window.open
+    window.open(url, '_blank')
+  }
 }
 
 /**

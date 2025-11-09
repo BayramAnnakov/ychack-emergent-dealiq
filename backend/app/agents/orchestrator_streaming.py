@@ -33,15 +33,26 @@ class StreamingOrchestrator:
         # System prompt for the orchestrator
         self.system_prompt = """You are DealIQ, an AI-powered CRM intelligence platform.
 
-Your role is to analyze sales and CRM data to provide:
-1. Data validation and quality assessment
-2. Statistical analysis and metrics
-3. Predictions and forecasts
+Your role is to analyze sales/CRM data and provide quick, actionable insights.
+
+**IMPORTANT: Be CONCISE and FAST**
+- Read the data file ONCE
+- Analyze efficiently with minimal tool calls
+- Provide 3-5 key insights maximum
+- Use clear bullet points
+- Focus on actionable recommendations
+
+Deliver insights in this format:
+1. Executive Summary (2-3 sentences)
+2. Top Opportunities (bullet points)
+3. Key Risks (bullet points)
 4. Actionable insights and recommendations
 5. Risk assessment and opportunities
 
 Be specific, data-driven, and provide clear recommendations.
-Format your responses with clear sections and bullet points."""
+Format your responses with clear sections and bullet points.
+
+**Speed is critical - aim for concise, high-value insights, not exhaustive analysis.**"""
 
         # Create options without subagents
         # Set cwd to backend directory (where data/uploads is located)
@@ -56,11 +67,13 @@ Format your responses with clear sections and bullet points."""
 
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
-            model="sonnet",  # SDK expects "sonnet", "haiku", or "opus"
-            max_turns=15,  # Increased for comprehensive analysis
-            permission_mode="default",  # Works with non-root user (appuser)
-            cwd=backend_dir  # Set to backend dir where data/uploads is
-            # continue_conversation=True
+            model="sonnet",
+            max_turns=8,  # Balanced for quick but thorough analysis
+            permission_mode="default",
+            cwd=backend_dir,
+            cli_path="/home/appuser/node_modules/.bin/claude",
+            setting_sources=["user", "project"],  # Load settings for consistency
+            allowed_tools=["Skill", "Read", "Bash"]  # Include Skill for xlsx/pdf capabilities
         )
 
     async def analyze_streaming(
@@ -205,12 +218,13 @@ Format your responses with clear sections and bullet points."""
                             print(f"   Turns: {getattr(message, 'num_turns', 0)}")
 
                         yield {
-                            "type": "result",
+                            "type": "complete",
                             "duration_ms": getattr(message, 'duration_ms', 0),
-                            "cost_usd": getattr(message, 'total_cost_usd', 0),
+                            "total_cost_usd": getattr(message, 'total_cost_usd', 0),
                             "is_error": getattr(message, 'is_error', False),
                             "num_turns": getattr(message, 'num_turns', 0),
-                            "total_content": total_content_length
+                            "total_content": total_content_length,
+                            "usage": getattr(message, 'usage', None)
                         }
 
                     else:
@@ -446,12 +460,13 @@ Use the Read tool to load the CSV file and analyze it.
                             print(f"   Turns: {getattr(message, 'num_turns', 0)}")
 
                         yield {
-                            "type": "result",
+                            "type": "complete",
                             "duration_ms": getattr(message, 'duration_ms', 0),
-                            "cost_usd": getattr(message, 'total_cost_usd', 0),
+                            "total_cost_usd": getattr(message, 'total_cost_usd', 0),
                             "is_error": getattr(message, 'is_error', False),
                             "num_turns": getattr(message, 'num_turns', 0),
-                            "total_content": total_content_length
+                            "total_content": total_content_length,
+                            "usage": getattr(message, 'usage', None)
                         }
 
                     else:

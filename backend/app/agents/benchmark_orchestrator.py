@@ -27,20 +27,50 @@ class BenchmarkOrchestrator(StreamingOrchestrator):
 Your role is to execute professional sales analysis tasks that involve:
 1. Reading and analyzing CRM/sales data from Excel files
 2. Performing advanced analytics (calculations, trends, forecasts)
-3. Creating professionally formatted Excel output files with:
-   - Multiple sheets for different analysis sections
-   - Excel FORMULAS (not hardcoded values) for all calculations
-   - Proper formatting, headers, and structure
-   - Clear insights and recommendations
+3. Creating professionally formatted outputs in Excel or PDF format
 
-When creating Excel files:
-- Use the xlsx Skill to ensure proper formatting and formulas
-- Include formulas like SUM(), AVERAGE(), growth calculations, etc.
+**CRITICAL: When creating Excel files:**
+- Use the xlsx Skill for proper formatting and formulas
+- Include formulas like SUM(), AVERAGE(), growth calculations
+- Auto-adjust ALL column widths after adding data
 - Format numbers, percentages, and currency appropriately
 - Add clear section headers and explanations
 - Create multiple sheets when organizing complex analyses
+- Protect formulas with IFERROR() to prevent division by zero errors
+- **IMPORTANT:** When using recalc.py, set timeout to at least 120 seconds:
+  ```bash
+  # Use longer timeout for large files with many formulas
+  python recalc.py output.xlsx 120
+  ```
+- For very large files (>50 sheets or >500 formulas), skip recalc - Excel will recalculate on open
 
-Be specific, data-driven, and provide professional-grade outputs."""
+**CRITICAL: When creating PDF files:**
+- Use the pdf Skill for professional document generation
+- **ALWAYS calculate table column widths based on page width, NEVER use fixed narrow widths**
+- For tables: Use proportional widths (e.g., 30%, 25%, 20%, 25% of available page width)
+- Set margins to at least 0.75 inches on all sides
+- Wrap long text in Paragraph() objects to prevent overflow
+- Use adequate cell padding (minimum 6pt)
+- Font size minimum 9pt for readability
+- Enable word wrapping in all table cells
+- Test with longest expected content, not average
+
+**Example for PDF tables:**
+```python
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+
+page_width = letter[0] - (2 * 0.75 * inch)  # Subtract margins
+col_widths = [
+    page_width * 0.35,  # 35% for description (long text)
+    page_width * 0.25,  # 25% for category
+    page_width * 0.20,  # 20% for status
+    page_width * 0.20   # 20% for date
+]
+table = Table(data, colWidths=col_widths, repeatRows=1)
+```
+
+Be specific, data-driven, and provide professional-grade outputs with ZERO formatting issues."""
 
         # Get backend directory (where .claude/skills is located)
         # Explicit path for Emergent environment with appuser
@@ -50,25 +80,24 @@ Be specific, data-driven, and provide professional-grade outputs."""
             print(f"📂 Backend dir: {backend_dir}")
             print(f"🔧 Skills dir: {os.path.join(backend_dir, '.claude/skills/xlsx')}")
 
-        # Configure options WITHOUT Skills tool (SDK bug causes hanging)
-        # Instead, xlsx Skill guidance is in system_prompt and Claude uses it via Python/openpyxl
-        # NOTE: xlsx Skill exists at backend/.claude/skills/xlsx/SKILL.md for reference
+        # Configure options WITH xlsx and pdf Skills properly enabled
         self.options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             model="sonnet",  # Use latest Sonnet for best performance
             max_turns=30,    # More turns for complex Excel tasks with data analysis
             permission_mode="default",  # Works with non-root user (appuser)
             cwd=backend_dir,
+            cli_path="/home/appuser/node_modules/.bin/claude",  # Path to claude CLI for appuser
             setting_sources=["user", "project"],
-            allowed_tools=["Skill", "Read", "Write", "Bash"]
-            # NOT including setting_sources or Skill in allowed_tools due to SDK hanging bug
+            allowed_tools=["Skill", "Read", "Write", "Bash"]  # xlsx and pdf Skills now available
         )
 
         if self.verbose:
             print("✅ BenchmarkOrchestrator initialized")
             print(f"   max_turns: {self.options.max_turns}")
             print(f"   cwd: {backend_dir}")
-            print(f"   xlsx Skill: Available via Python/openpyxl (system prompt guidance)")
+            print(f"   xlsx Skill: {os.path.join(backend_dir, '.claude/skills/xlsx')}")
+            print(f"   pdf Skill: {os.path.join(backend_dir, '.claude/skills/pdf')}")
 
     async def execute_gpteval_task_streaming(
         self,

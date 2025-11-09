@@ -253,8 +253,39 @@ async def stream_analysis(file_id: str, query: str, analysis_type: str = "genera
                     "processing_time": update.get("duration_ms", 0) / 1000,
                     "cost_usd": update.get("cost_usd", 0),
                     "markdown": complete_markdown,
-                    "progress": 100
+                    "progress": 100,
+                    "analysis_id": None  # Will be set after saving
                 }
+                
+                # Save analysis to history
+                try:
+                    from datetime import datetime
+                    
+                    history_dir = "data/crm_analyses"
+                    os.makedirs(history_dir, exist_ok=True)
+                    
+                    analysis_id = f"{file_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    history_file = f"{history_dir}/{analysis_id}_analysis.json"
+                    
+                    history_data = {
+                        "analysis_id": analysis_id,
+                        "query": query,
+                        "query_type": analysis_type,
+                        "file_id": file_id,
+                        "insights": insights,
+                        "confidence": result["confidence"],
+                        "processing_time": result["processing_time"],
+                        "markdown": complete_markdown,
+                        "created_at": datetime.now().isoformat()
+                    }
+                    
+                    with open(history_file, 'w') as f:
+                        json.dump(history_data, f, indent=2)
+                    
+                    result["analysis_id"] = analysis_id  # Add to result
+                    logger.info(f"Saved analysis to history: {analysis_id}")
+                except Exception as e:
+                    logger.error(f"Failed to save analysis history: {e}")
 
                 yield f"data: {json.dumps(result)}\n\n"
 
